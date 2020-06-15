@@ -1,5 +1,6 @@
 from collections import defaultdict
 import csv
+import pandas as pd
 
 # go thru the revised file and count each bpoc
 def parse_bpocs(filename, destfilename, txtfilename):
@@ -26,6 +27,13 @@ def parse_bpocs(filename, destfilename, txtfilename):
 			"antibiotic", "invasion", "evasion",
 			"cytotoxicity", "degrade_ecm", "disable_organ"]
 
+	header_names = ["query", "taxid", "go", 
+			"multi_taxids_confidence", "go_id_confidence",
+			"adhesion", "secretion", "host_cell_death",
+			"antibiotic", "invasion", "evasion",
+			"cytotoxicity", "degrade_ecm", "disable_organ",
+			"size", "organism", "gene_name", "uniprot", "uniprot evalue"]
+
 	# initialize our dictionaries
 	adhesion_dict = {}
 	secretion_dict = {}
@@ -48,53 +56,52 @@ def parse_bpocs(filename, destfilename, txtfilename):
 			this_dict[elem] = defaultdict(int)
 
 	# read and parse the file
-	# file = open(filename, "r")
-	# info = file.readlines()
 
-	# dest_file = open(destfilename, "w")
+	# df = pd.read_csv(filename, delimiter='\t')
 
-	writer = csv.writer(open(destfilename,'wb'))
+	# # df_out = pd.to_csv(destfilename, delimiter='\t')
+	# # writer = csv.writer(open(destfilename,'wb'))
 
-	with open(filename) as tsvfile:
-		reader = csv.DictReader(tsvfile, dialect='excel-tab')
-		for row in reader:
-			bpoc = False
-			# if row["query"]=="query":
-			# 	writer.writerow([row])
-			if row["adhesion"]!='-' and row["query"]!="query":
-				total_rows+=1
-				for i in range(9):
-					if (int(row[bpoc_names[i]]) > 0):
-						bpoc = True
-						counts[i]+=1
-						for elem in elems:
-							dicts[i][elem][row[elem]]+=1
-						# dicts[i]["organism"][data[15]]+=1
-						# dicts[i]["gene_name"][data[16]]+=1
-						# dicts[i]["uniprot"][data[17]]+=1
-						# dicts[i]["uniprot_evalue"][data[18]]+=1
-				if (bpoc):
-					bpoc_rows+=1
-					# writer.writerow([row])
-
-
-	# for line in info:
+	# for row in len(df.index):
 	# 	bpoc = False
-	# 	data = (line.split('\t'))
-	# 	if data[5]!='-' and data[0]!="query":
+	# 	# if row["query"]=="query":
+	# 	# 	writer.writerow([row])
+	# 	if row["adhesion"]!='-' and row["query"]!="query":
 	# 		total_rows+=1
 	# 		for i in range(9):
-	# 			if (int(data[i+5]) > 0):
+	# 			if (int(row[bpoc_names[i]]) > 0):
 	# 				bpoc = True
 	# 				counts[i]+=1
-	# 				dicts[i]["taxid"][data[1]]+=1
-	# 				dicts[i]["organism"][data[15]]+=1
-	# 				dicts[i]["gene_name"][data[16]]+=1
-	# 				dicts[i]["uniprot"][data[17]]+=1
-	# 				dicts[i]["uniprot_evalue"][data[18]]+=1
+	# 				for elem in elems:
+	# 					dicts[i][elem][row[elem]]+=1
 	# 		if (bpoc):
 	# 			bpoc_rows+=1
-	# 			dest_file.write(line)
+	# 			# writer.writerow([row])
+
+
+
+	# writer = csv.writer(open(destfilename,'wb'))
+
+	with open(filename) as tsvfile:
+		with open(destfilename, "w") as desttsvfile:
+			reader = csv.DictReader(tsvfile, dialect='excel-tab')
+			writer = csv.DictWriter(desttsvfile, fieldnames=header_names, delimiter='\t')
+			writer.writeheader()
+			for row in reader:
+				bpoc = False
+				if row["adhesion"]!='-' and row["query"]!="query":
+					total_rows+=1
+					for i in range(9):
+						if (int(row[bpoc_names[i]]) > 0):
+							bpoc = True
+							counts[i]+=1
+							for elem in elems:
+								dicts[i][elem][row[elem]]+=1
+					if (bpoc):
+						bpoc_rows+=1
+						writer.writerow(row)
+
+
 
 
 	# write to the text file
@@ -119,13 +126,18 @@ def parse_bpocs(filename, destfilename, txtfilename):
 			txt_file.write("\n")
 		txt_file.write("\n")
 
+"""
 
-parse_bpocs("S01_trim25_fast_seqscreen_report.tsv", "S01_revised.tsv", "S01.txt")
-# parse_bpocs('S02_trim25_fast_seqscreen_report.tsv', 'S02_revised.tsv', 'S02.txt')
-# parse_bpocs('S03_trim25_fast_seqscreen_report.tsv', 'S03_revised.tsv', 'S03.txt')
-# parse_bpocs('S04_trim25_fast_seqscreen_report.tsv', 'S04_revised.tsv', 'S04.txt')
-# parse_bpocs('SRR10903401_combined_trim25_fast_seqscreen_report.tsv', 'SRR401_revised.tsv', 'SRR401.txt')
-# parse_bpocs('SRR10903402_combined_trim25_fast_seqscreen_report.tsv', 'SRR402_revised.tsv', 'SRR402.txt')
-# parse_bpocs('SRR10971381_combined_trim25_seqscreen_report.tsv', 'SRR381_revised.tsv', 'SRR381.txt')
+filepath = "/Users/winnieli/Documents/summer2020microbes/"
+def parse_bpocs_filepath(filepath, filename, destfilename, txtfilename):
+	parse_bpocs(filepath+filename, filepath+destfilename, filepath+txtfilename)
 
+parse_bpocs_filepath(filepath, "S01_trim25_fast_seqscreen_report.tsv", "S01_revised.tsv", "S01.txt")
+parse_bpocs_filepath(filepath, 'S02_trim25_fast_seqscreen_report.tsv', 'S02_revised.tsv', 'S02.txt')
+parse_bpocs_filepath(filepath, 'S03_trim25_fast_seqscreen_report.tsv', 'S03_revised.tsv', 'S03.txt')
+parse_bpocs_filepath(filepath, 'S04_trim25_fast_seqscreen_report.tsv', 'S04_revised.tsv', 'S04.txt')
+parse_bpocs_filepath(filepath, 'SRR10903401_combined_trim25_fast_seqscreen_report.tsv', 'SRR401_revised.tsv', 'SRR401.txt')
+parse_bpocs_filepath(filepath, 'SRR10903402_combined_trim25_fast_seqscreen_report.tsv', 'SRR402_revised.tsv', 'SRR402.txt')
+# parse_bpocs_filepath(filepath, 'SRR10971381_combined_trim25_seqscreen_report.tsv', 'SRR381_revised.tsv', 'SRR381.txt')
 
+"""

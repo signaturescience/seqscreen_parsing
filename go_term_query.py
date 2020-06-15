@@ -10,6 +10,7 @@
 
 # What visualizations could be created?
 from collections import defaultdict
+import csv
 
 def go_query(go_numbers, filename, destfilename, txtfilename):
 	# initialize our counters
@@ -30,11 +31,19 @@ def go_query(go_numbers, filename, destfilename, txtfilename):
 			antibiotic_count, invasion_count, evasion_count,
 			cytotoxicity_count, degrade_ecm_count, disable_organ_count]
 
-	names = ["adhesion", "secretion", "host_cell_death",
+	bpoc_names = ["adhesion", "secretion", "host_cell_death",
 			"antibiotic", "invasion", "evasion",
 			"cytotoxicity", "degrade_ecm", "disable_organ"]
 
+	header_names = ["query", "taxid", "go", 
+			"multi_taxids_confidence", "go_id_confidence",
+			"adhesion", "secretion", "host_cell_death",
+			"antibiotic", "invasion", "evasion",
+			"cytotoxicity", "degrade_ecm", "disable_organ",
+			"size", "organism", "gene_name", "uniprot", "uniprot evalue"]
+
 	# initialize our dictionaries
+	# taxid_dict = {}
 	adhesion_dict = {}
 	secretion_dict = {}
 	host_cell_death_dict = {}
@@ -44,44 +53,64 @@ def go_query(go_numbers, filename, destfilename, txtfilename):
 	cytotoxicity_dict = {}
 	degrade_ecm_dict = {}
 	disable_organ_dict = {}
+	organism_dict = {}
+	# gene_name_dict = {}
+	# uniprot_dict = {}
+	# uniprot_evalue_dict = {}
 
-	dicts = [adhesion_dict, secretion_dict, host_cell_death_dict, 
+	bpoc_dicts = [adhesion_dict, secretion_dict, host_cell_death_dict, 
 			antibiotic_dict, invasion_dict, evasion_dict,
 			cytotoxicity_dict, degrade_ecm_dict, disable_organ_dict]
 
-	elems = ["taxid", "organism", "gene_name", "uniprot", "uniprot_evalue"]
+	#elem_dicts = [taxid_dict, organism_dict, gene_name_dict, uniprot_dict, uniprot_evalue_dict]
 
-	for this_dict in dicts:
+	elems = ["taxid", "organism", "gene_name", "uniprot", "uniprot evalue"]
+
+	for this_dict in bpoc_dicts:
 		for elem in elems:
 			this_dict[elem] = defaultdict(int)
 
+	go_dict = {}
+	for num in go_numbers:
+		go_dict[str(num)] = {}
+		for elem in elems:
+			go_dict[str(num)][elem] = defaultdict(int)
+
 	# read and parse the file
-	file = open(filename, "r")
-	info = file.readlines()
+	with open(filename) as tsvfile:
+		with open(destfilename, "w") as desttsvfile:
+			reader = csv.DictReader(tsvfile, dialect='excel-tab')
+			writer = csv.DictWriter(desttsvfile, fieldnames=header_names, delimiter = '\t')
+			writer.writeheader()
 
-	dest_file = open(destfilename, "w")
+			for row in reader:
+				go_flags = set([])
 
-	for line in info:
-		data = (line.split('\t'))
-		data2 = data[2].split(";")
-		go_flag = False
-		for elem in data2:
-			for go_num in go_numbers:
-				if (elem[3:] == go_num):
-					go_flag = True
-		if data[5]!='-' and data[0]!="query":
-			total_rows+=1
-		if (go_flag):
-			for i in range(9):
-				if (int(data[i+5]) > 0):
-					counts[i]+=1
-					dicts[i]["taxid"][data[1]]+=1
-					dicts[i]["organism"][data[15]]+=1
-					dicts[i]["gene_name"][data[16]]+=1
-					dicts[i]["uniprot"][data[17]]+=1
-					dicts[i]["uniprot_evalue"][data[18]]+=1
-			go_rows+=1
-			dest_file.write(line)
+				if row["adhesion"]!='-' and row["query"]!="query":
+					total_rows+=1
+					this_golist = row["go"].split(";")
+					for go_num1 in this_golist:
+						for go_num2 in go_numbers:
+							if go_num1 == go_num2:
+								go_flags.add(go_num1)
+
+					# If we get a match
+					if (len(go_flags) > 0):
+						go_rows+=1
+						writer.writerow(row)
+
+						for go_num in go_flags:
+							for elem in elems:
+								go_dict[go_num][elem][row[elem]]+=1
+
+
+						for i in range(9):
+							if (int(row[bpoc_names[i]]) > 0):
+								counts[i]+=1
+								for elem in elems:
+									bpoc_dicts[i][elem][row[elem]]+=1
+
+						
 
 
 	# write to the text file
@@ -92,29 +121,55 @@ def go_query(go_numbers, filename, destfilename, txtfilename):
 
 	txt_file.write("\n\n")
 
+
+
+	# Go number information
+	for go_num in go_dict:
+		txt_file.write("Go num: " + go_num + "\n")
+		for elem in go_dict[go_num]:
+			txt_file.write(elem + ":\n")
+			for i in go_dict[go_num][elem]:
+				txt_file.write("key: " + str(i) + ", value: " + str(go_dict[go_num][elem][i]))
+				txt_file.write("\n")
+			txt_file.write("\n")
+		txt_file.write("\n")
+
+	txt_file.write("\n")
+
+
+	# BPOC-go information
+
 	for i in range(len(counts)):
-		txt_file.write("Percentage of " + names[i] + ": " + str((1.0*counts[i])/total_rows) + "\n")
+		txt_file.write("Percentage of " + bpoc_names[i] + ": " + str((1.0*counts[i])/total_rows) + "\n")
 
 	txt_file.write("\n\n")
 	
-	for i in range(len(dicts)):
+	for i in range(len(bpoc_dicts)):
 		for elem in elems:
-			txt_file.write(names[i] + " " + elem + " ")
-			for j in dicts[i][elem]:
-				txt_file.write("key: " + str(j) + ", value: " + str(dicts[i][elem][j]))
+			txt_file.write(bpoc_names[i] + " " + elem + " ")
+			for j in bpoc_dicts[i][elem]:
+				txt_file.write("key: " + str(j) + ", value: " + str(bpoc_dicts[i][elem][j]))
 				txt_file.write("\n")
 			txt_file.write("\n")
 		txt_file.write("\n")
 
 
+"""
 filepath = "/Users/winnieli/Documents/summer2020microbes/"
-go_numbers = ["0055114", "0016491"]
-go_query(go_numbers, filepath + "S01_trim25_fast_seqscreen_report.tsv", filepath + "S01_go_revised.tsv", filepath + "S01_go.txt")
-# go_query('S02_trim25_fast_seqscreen_report.tsv', 'S02_revised.tsv', 'S02.txt')
-# go_query('S03_trim25_fast_seqscreen_report.tsv', 'S03_revised.tsv', 'S03.txt')
-# go_query('S04_trim25_fast_seqscreen_report.tsv', 'S04_revised.tsv', 'S04.txt')
-# go_query('SRR10903401_combined_trim25_fast_seqscreen_report.tsv', 'SRR401_revised.tsv', 'SRR401.txt')
-# go_query('SRR10903402_combined_trim25_fast_seqscreen_report.tsv', 'SRR402_revised.tsv', 'SRR402.txt')
-# go_query('SRR10971381_combined_trim25_seqscreen_report.tsv', 'SRR381_revised.tsv', 'SRR381.txt')
+
+# Must input numbers with the "GO:" in front of it
+go_numbers = ["GO:0046718", "GO:0016032"]
+
+def go_query_filepath(filepath, filename, destfilename, txtfilename):
+	go_query(go_numbers, filepath+filename, filepath+destfilename, filepath+txtfilename)
+
+go_query_filepath(filepath, "S01_trim25_fast_seqscreen_report.tsv", "S01_go_revised.tsv", "S01_go.txt")
+go_query_filepath(filepath, 'S02_trim25_fast_seqscreen_report.tsv', 'S02_go_revised.tsv', 'S02_go.txt')
+go_query_filepath(filepath, 'S03_trim25_fast_seqscreen_report.tsv', 'S03_go_revised.tsv', 'S03_go.txt')
+go_query_filepath(filepath, 'S04_trim25_fast_seqscreen_report.tsv', 'S04_go_revised.tsv', 'S04_go.txt')
+go_query_filepath(filepath, 'SRR10903401_combined_trim25_fast_seqscreen_report.tsv', 'SRR401_go_revised.tsv', 'SRR401_go.txt')
+go_query_filepath(filepath, 'SRR10903402_combined_trim25_fast_seqscreen_report.tsv', 'SRR402_go_revised.tsv', 'SRR402_go.txt')
+# go_query_filepath(filepath, 'SRR10971381_combined_trim25_seqscreen_report.tsv', 'SRR381_go_revised.tsv', 'SRR381_go.txt')
+"""
 
 
