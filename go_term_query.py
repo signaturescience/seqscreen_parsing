@@ -86,6 +86,7 @@ def go_query(go_numbers, filename, destfilename, txtfilename):
 			for row in reader:
 				go_flags = set([])
 
+				# if the row is valid (aka not header or row with dashes)
 				if row["adhesion"]!='-' and row["query"]!="query":
 					total_rows+=1
 					this_golist = row["go"].split(";")
@@ -101,7 +102,20 @@ def go_query(go_numbers, filename, destfilename, txtfilename):
 
 						for go_num in go_flags:
 							for elem in elems:
-								go_dict[go_num][elem][row[elem]]+=1
+								if elem == "taxid":
+									taxids_conf = row["multi_taxids_confidence"].split(",")
+									tc_list = []
+									maximum = 0.0
+									for taxid_conf in taxids_conf:
+										tc_term = taxid_conf.split(":")
+										if (float(tc_term[1]) > maximum):
+											maximum = float(tc_term[1])
+											tc_list.append(tc_term)
+									for tc in tc_list:
+										if float(tc[1]) >= maximum:
+											go_dict[go_num][elem][tc[0]]+=1
+								else:
+									go_dict[go_num][elem][row[elem]]+=1
 
 
 						for i in range(9):
@@ -154,22 +168,22 @@ def go_query(go_numbers, filename, destfilename, txtfilename):
 		txt_file.write("\n")
 
 
-"""
-filepath = "/Users/winnieli/Documents/summer2020microbes/"
 
-# Must input numbers with the "GO:" in front of it
-go_numbers = ["GO:0046718", "GO:0016032"]
+# filepath = "/Users/winnieli/Documents/summer2020microbes/"
 
-def go_query_filepath(filepath, filename, destfilename, txtfilename):
-	go_query(go_numbers, filepath+filename, filepath+destfilename, filepath+txtfilename)
 
-go_query_filepath(filepath, "S01_trim25_fast_seqscreen_report.tsv", "S01_go_revised.tsv", "S01_go.txt")
-go_query_filepath(filepath, 'S02_trim25_fast_seqscreen_report.tsv', 'S02_go_revised.tsv', 'S02_go.txt')
-go_query_filepath(filepath, 'S03_trim25_fast_seqscreen_report.tsv', 'S03_go_revised.tsv', 'S03_go.txt')
-go_query_filepath(filepath, 'S04_trim25_fast_seqscreen_report.tsv', 'S04_go_revised.tsv', 'S04_go.txt')
-go_query_filepath(filepath, 'SRR10903401_combined_trim25_fast_seqscreen_report.tsv', 'SRR401_go_revised.tsv', 'SRR401_go.txt')
-go_query_filepath(filepath, 'SRR10903402_combined_trim25_fast_seqscreen_report.tsv', 'SRR402_go_revised.tsv', 'SRR402_go.txt')
-# go_query_filepath(filepath, 'SRR10971381_combined_trim25_seqscreen_report.tsv', 'SRR381_go_revised.tsv', 'SRR381_go.txt')
-"""
+# # Must input numbers with the "GO:" in front of it
+# go_numbers = ["GO:0046718", "GO:0016032"]
+
+# def go_query_filepath(filepath, filename, destfilename, txtfilename):
+# 	go_query(go_numbers, filepath+filename, filepath+destfilename, filepath+txtfilename)
+
+# # go_query_filepath(filepath, "S01_trim25_fast_seqscreen_report.tsv", "S01_go_revised.tsv", "S01_go.txt")
+# # go_query_filepath(filepath, 'S02_trim25_fast_seqscreen_report.tsv', 'S02_go_revised.tsv', 'S02_go.txt')
+# # go_query_filepath(filepath, 'S03_trim25_fast_seqscreen_report.tsv', 'S03_go_revised.tsv', 'S03_go.txt')
+# # go_query_filepath(filepath, 'S04_trim25_fast_seqscreen_report.tsv', 'S04_go_revised.tsv', 'S04_go.txt')
+# # go_query_filepath(filepath, 'SRR10903401_combined_trim25_fast_seqscreen_report.tsv', 'SRR401_go_revised.tsv', 'SRR401_go.txt')
+# # go_query_filepath(filepath, 'SRR10903402_combined_trim25_fast_seqscreen_report.tsv', 'SRR402_go_revised.tsv', 'SRR402_go.txt')
+# # go_query_filepath(filepath, 'SRR10971381_combined_trim25_seqscreen_report.tsv', 'SRR381_go_revised.tsv', 'SRR381_go.txt')
 
 
