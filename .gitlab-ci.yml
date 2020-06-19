@@ -13,8 +13,9 @@ pylint:
     - anybadge --label=Pylint --file=pylint/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
     - echo "Pylint score is $PYLINT_SCORE"
   only: 
-    - merge_requests
-    - master
+    refs:
+      - merge_requests
+      - master
     changes:
       - "**/*.py"
   artifacts:
