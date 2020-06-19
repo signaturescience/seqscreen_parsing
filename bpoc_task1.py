@@ -33,6 +33,7 @@ f_out.write("\n")
 f_out.write(f"Percentage of bpoc in sample:{len(df_bpocs.index)/len(df.index)}")
 f_out.write("\n\n")
 
+# TODO: process multi taxids
 # What taxid, organism, gene_name, uniprot, and uniprot evalues were assigned to the BPoCs within the sample?
 f_out.write("Taxid, organism, gene_name, uniprot, and uniprot evalues per BPoC:")
 for bpoc in bpocs:
