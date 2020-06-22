@@ -44,7 +44,7 @@ def generate_krona(input_file):
 # input_file_list = ["SRR10903402_trim30_rnaspades_fast_seqscreen_report.txt", "SRR10903402_trim30_megahit_fast_seqscreen_report.txt", "SRR10903402_trim30_trinity_default_seqscreen_report.txt", "SRR10903402_trim30_trinity_fast_seqscreen_report.txt", \
 #     "SRR10903401_trim30_trinity_fast_seqscreen_report.txt", "SRR10903401_trim30_trinity_default_seqscreen_report.txt", "SRR10903401_trim30_rnaspades_fast_seqscreen_report.txt", "SRR10903401_trim30_megahit_fast_seqscreen_report.txt"]
 
-input_file_list = ["S01_revised.tsv"]
+input_file_list = ["S01_trim25_fast_seqscreen_report.tsv_go_num_0016310_revised.tsv"]
 #, "S02_revised.tsv", "S03_revised.tsv", "S04_revised.tsv", "SRR401_revised.tsv", "SRR402_revised.tsv", "SRR381_revised.tsv"]
 
 filepath = "/Users/winnieli/Documents/summer2020microbes/"
