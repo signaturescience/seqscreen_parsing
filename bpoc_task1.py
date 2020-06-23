@@ -9,22 +9,26 @@ import pathlib
 import argparse
 import pandas as pd
 
-def bpoc_parse(df, filename, output_dir, f_out):
+def bpoc_parse(dataframe, filename, output_dir, f_out):
+    """
+    Creates a revised file with only bpoc lines and
+    a summary file with analysis of bpocs
+    """
     bpocs = ["adhesion", "secretion", "host_cell_death",
              "antibiotic", "invasion", "evasion",
              "cytotoxicity", "degrade_ecm", "disable_organ"]
 
     elems = ["taxid", "organism", "gene_name", "uniprot", "uniprot evalue"]
 
-    df_bpocs = df[df[bpocs].replace('-', 0).astype(int).sum(1) > 0]
-    df_bpocs.to_csv(f"{filename}_revised.tsv", sep='\t', index=False)
+    df_bpocs = dataframe[dataframe[bpocs].replace('-', 0).astype(int).sum(1) > 0]
+    df_bpocs.to_csv(f"{output_dir}{filename}_revised.tsv", sep='\t', index=False)
 
     # What taxid, organism, gene_name, uniprot, and uniprot evalues
     # were assigned to the BPoCs within the sample?
     bpoc_counts = df_bpocs[bpocs].astype(int).sum(0)
     f_out.write(bpoc_counts.to_string())
     f_out.write("\n")
-    f_out.write(f"Percentage of bpoc in sample:{len(df_bpocs.index)/len(df.index)}")
+    f_out.write(f"Percentage of bpoc in sample:{len(df_bpocs.index)/len(dataframe.index)}")
     f_out.write("\n\n")
 
     # What taxid, organism, gene_name, uniprot, and uniprot
@@ -39,7 +43,13 @@ def bpoc_parse(df, filename, output_dir, f_out):
             f_out.write(f"{elems_in_bpoc.to_string()} \n")
     f_out.close()
 
+
 def main():
+    """
+    Runs the bpoc parsing from the command line
+    takes in a .tsv file as input
+    """
+
     # parse the inputted .tsv file (needs to be full path)
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", type=str, help="input a .tsv file")
@@ -51,7 +61,7 @@ def main():
     f_out = open(f"{output_dir}{filename}_summary.txt", "w") # summary file
 
     # remove rows where there are no bpocs, create a revised file
-    df = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
-    bpoc_parse(df, filename, output_dir, f_out)
+    dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
+    bpoc_parse(dataframe, filename, output_dir, f_out)
 
 main()

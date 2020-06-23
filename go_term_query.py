@@ -41,23 +41,22 @@ for go_num in go_nums:
 
     # summarize the proteins and organisms
     for col in columns:
-        # if col == "taxid":
-        #   df_go_counts = df_go.groupby("multi_taxids_confidence").
-        #   .apply({
-        #       lambda x:
-  #               taxids = []
-        #       data = x.split(",")
-        #       maximum = 0
-        #       for dat in data:
-        #           taxid_conf = dat.split(":")
-        #           if taxid_conf[1] > maximum:
-        #               maximum = taxid_conf[1]
-        #       for dat in data:
-        #           taxid_conf = dat.split(":")
-        #           if taxid_conf[1] >= maximum:
-        #               taxixds.append(taxid_conf[0]))
-        #   .count().loc[:, "query"].sort_values(ascending=False)
+        if col == "taxid":
+          df_go_counts = df_go.groupby("multi_taxids_confidence").apply(lambda x: x).count().loc[:, "query"].sort_values(ascending=False)
+              #   taxids = []
+              # data = x.split(",")
+              # maximum = 0
+              # for dat in data:
+              #     taxid_conf = dat.split(":")
+              #     if taxid_conf[1] > maximum:
+              #         maximum = taxid_conf[1]
+              # for dat in data:
+              #     taxid_conf = dat.split(":")
+              #     if taxid_conf[1] >= maximum:
+              #         taxixds.append(taxid_conf[0]))
+          
             # count().loc[:, "query"].sort_values(ascending=False)
-        df_go_counts = df_go.groupby(col).count().loc[:, "query"].sort_values(ascending=False)
+        else:
+            df_go_counts = df_go.groupby(col).count().loc[:, "query"].sort_values(ascending=False)
         f_out.write(f"{df_go_counts.to_string()} \n\n")
     f_out.close()
