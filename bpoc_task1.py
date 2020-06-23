@@ -4,12 +4,12 @@ https://trello.com/b/tDbNjSfc/reu2020
 
 @author: wwl3
 """
+import argparse
 import os
 import pathlib
-import argparse
 import pandas as pd
 
-def bpoc_parse(dataframe, filename, output_dir, f_out):
+def bpoc_parse(dataframe, filename, output_dir):
     """
     Creates a revised file with only bpoc lines and
     a summary file with analysis of bpocs
@@ -26,6 +26,7 @@ def bpoc_parse(dataframe, filename, output_dir, f_out):
     # What taxid, organism, gene_name, uniprot, and uniprot evalues
     # were assigned to the BPoCs within the sample?
     bpoc_counts = df_bpocs[bpocs].astype(int).sum(0)
+    f_out = open(f"{output_dir}{filename}_summary.txt", "w") # summary file
     f_out.write(bpoc_counts.to_string())
     f_out.write("\n")
     f_out.write(f"Percentage of bpoc in sample:{len(df_bpocs.index)/len(dataframe.index)}")
@@ -40,7 +41,11 @@ def bpoc_parse(dataframe, filename, output_dir, f_out):
             f_out.write(f"\n{bpoc} \n")
             elems_in_bpoc = pd.Series(bpoc_elems.transpose().to_numpy().tolist(),
                                       index=bpoc_elems.columns).apply(lambda x: ', '.join(set(x)))
-            f_out.write(f"{elems_in_bpoc.to_string()} \n")
+            #ideally this would not be a for loop,
+            #but dislike formatting for elems_in_bpoc.to_string()
+            for index, value in elems_in_bpoc.items():
+                f_out.write(f"{index}: {value} \n")
+
     f_out.close()
 
 
@@ -50,7 +55,7 @@ def main():
     takes in a .tsv file as input
     """
 
-    # parse the inputted .tsv file (needs to be full path)
+    # parse the inputted .tsv file
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", type=str, help="input a .tsv file")
     args = parser.parse_args()
@@ -58,10 +63,9 @@ def main():
     output_dir = "outputs/"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-    f_out = open(f"{output_dir}{filename}_summary.txt", "w") # summary file
 
     # remove rows where there are no bpocs, create a revised file
     dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
-    bpoc_parse(dataframe, filename, output_dir, f_out)
+    bpoc_parse(dataframe, filename, output_dir)
 
 main()
