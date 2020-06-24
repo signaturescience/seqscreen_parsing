@@ -20,7 +20,7 @@ python bpoc_parse.py <path_to_seqscreen_output> ....
 python bpoc_parse.py <path_to_seqscreen_output> ....
 ```
 
-<br/><br/><br/>
+<br/><br/>
 
 
 ## GO Term Queries
@@ -40,7 +40,7 @@ python go_term_parse.py <path_to_seqscreen_output> ....
 python go_term_parse.py <path_to_seqscreen_output> ....
 ```
 
-<br/><br/><br/>
+<br/><br/>
 
 
 ## Taxon Abundances
