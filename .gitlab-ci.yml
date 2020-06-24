@@ -21,3 +21,4 @@ pylint:
   artifacts:
     paths:
       - ./pylint/
+
