@@ -20,6 +20,12 @@ python bpoc_parse.py <path_to_seqscreen_output> ....
 python bpoc_parse.py <path_to_seqscreen_output> ....
 ```
 
+
+
+
+
+
+
 ## GO Term Queries
 
 Fill in with bit about task2 and the functionality of this script
@@ -36,6 +42,10 @@ python go_term_parse.py <path_to_seqscreen_output> ....
 ```bash
 python go_term_parse.py <path_to_seqscreen_output> ....
 ```
+
+
+
+
 
 
 
