@@ -36,7 +36,7 @@ these files for each GO term:
 - a Krona Plot for that GO term
 
 ```bash
-python go_term_parse.py <path_to_seqscreen_output> <list of go terms separated by commas, no spaces>
+python go_term_parse.py <path_to_seqscreen_output> <go terms separated by spaces>
 ```
 **optional flags:**
 
@@ -44,7 +44,7 @@ python go_term_parse.py <path_to_seqscreen_output> <list of go terms separated b
 
 **example:**
 ```bash
-python taxid_parse.py examples/SRR10903401_seqscreen_report.tsv 0016310,0016032,0003824
+python taxid_parse.py examples/SRR10903401_seqscreen_report.tsv 0016310 0016032 0003824
 ```
 
 <br/><br/>
