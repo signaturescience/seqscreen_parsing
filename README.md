@@ -34,9 +34,6 @@ these files for each GO term:
 ```bash
 python go_term_parse.py <path_to_seqscreen_output> <go terms separated by spaces>
 ```
-**optional flags:**
-
-  * None
 
 **example:**
 ```bash
