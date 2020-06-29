@@ -120,50 +120,49 @@ def assume_human(inputname):
     n = inputname.split(".")[0]
     df.to_csv(f"{n}output.txt", sep="\t", index=False)
     
-def parse_conf(inputname, attrs):
-    parse_funcs(inputname, sort_conf, attrs)
-    return "done"
-
-def remove_tied(inputname, attrs):
-    parse_funcs(inputname, sort_tied, attrs)
-    return "done"
-
-def remove_equal(inputname):
-    parse_funcs(inputname, sort_tied, 1)
-    return "done"
-
-
-
+    
 def main():
-    parser = ArgumentParser(description="calls desired function")
-    parser.add_argument("function",
-                        nargs="?",
-                        choices=['parse_conf', 'remove_tied', 'remove_equal',
-                                 'assume_human', "count_taxids"],
-                        default='parse_conf',)
-    args, sub_args = parser.parse_known_args()
+    parser = argparse.ArgumentParser(add_help=False)
+    
+    parser.add_argument('input', type=str,)
 
-    if args.function == "parse_conf":
-        parser = ArgumentParser()
-        parser.add_argument('-i', '--inputname')
-        parser.add_argument('-d', '--destname')
-        parser.add_argument('-c', '--confidence')
-        args = parser.parse_args(sub_args)
-        parse_conf(args.inputname, args.confidence)
+    subparsers = parser.add_subparsers()
+    
+    conf = subparsers.add_parser("parse_conf", parents = [parser],
+        help="remove taxids below input confidence")
+    conf.add_argument("-c","--confidence", type=float, 
+        help="desired minimum confidence level")
+    
+    tied = subparsers.add_parser("thresh_tied", parents = [parser],
+        help="remove tied taxids if tied taxid number is larger than input threshold")
+    tied.add_argument("-t","--threshold", type=int, 
+        help="max. number of tied taxids tolerated")
 
-    if args.function == "remove_tied":
-        parser = ArgumentParser()
-        parser.add_argument('-i', '--inputname')
-        parser.add_argument('-d', '--destname')
-        parser.add_argument('-t', '--threshold')
-        args = parser.parse_args(sub_args)
-        remove_tied(args.inputname, args.threshold)
-
-    elif args.function == ("remove_equal" or "assume_human" or "count_taxids"):
-        parser = ArgumentParser()
-        parser.add_argument('-i', '--inputname')
-        parser.add_argument('-d', '--destname')
-        args = parser.parse_args(sub_args)
-        args.function(args.inputname, args.destname)
+    human = subparsers.add_parser("assume_human", parents = [parser],
+        help="assume organism is human if human taxid occurs in multi taxid column")
+    
+    alltied = subparsers.add_parser("all_tied", parents = [parser],
+        help="remove all tied taxids")
+    
+    count = subparsers.add_parser("count_taxid", parents = [parser],
+        help="count occurrence of each taxid in file")
+    
+    args = parser.parse_args()
+    print(args)
+    
+    if parse_conf: 
+        parse_funcs(args.input, sort_conf, args.confidence)
+        
+    elif (tied): 
+        parse_funcs(args.input, sort_tied, tied.threshold)
+        
+    elif (human):
+        assume_human(args.input)
+        
+    elif (alltied): 
+        parse_funcs(args.input, sort_tied, 1)
+        
+    elif (count): 
+        count_taxids(args.input)
 
 main()
