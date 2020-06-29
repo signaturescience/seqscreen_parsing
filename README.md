@@ -14,10 +14,6 @@ Taking in a .tsv file of SeqScreen output, creates:
 ```bash
 python bpoc_parse.py <path_to_seqscreen_output>
 ```
-**optional flags:**
-
-  * None
-
 
 **example:**
 ```bash
