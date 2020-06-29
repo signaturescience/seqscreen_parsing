@@ -38,6 +38,7 @@ python go_term_parse.py <path_to_seqscreen_output> <go terms separated by spaces
 **example:**
 ```bash
 python taxid_parse.py examples/SRR10903401_seqscreen_report.tsv 0016310 0016032 0003824
+python taxid_parse.py examples/SRR10903401_seqscreen_report.tsv GO:0016310 GO:0016032 
 ```
 
 <br/><br/>
