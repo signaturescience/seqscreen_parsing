@@ -5,6 +5,7 @@ seqscreen_parse_utils.py
 All functions used for parsing scripts in this repo.
 """
 import os
+import subprocess
 import pandas as pd
 
 def krona_plot(inputfilename):
@@ -25,7 +26,7 @@ def krona_plot(inputfilename):
 
     krona_outfile_name = f"{outfile_name}.html"
     open(krona_outfile_name, "w")
-    os.system(f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}")
+    subprocess.Popen(f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}", shell=True).wait()
 
 def bpoc_parse(dataframe, filename, output_dir):
     """
