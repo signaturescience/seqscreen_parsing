@@ -56,7 +56,7 @@ Takes in a .tsv file of SeqScreen output. Creates the following files depending 
 ```bash
 python taxid_parse.py <path_to_seqscreen_output> python taxidparse.py <path_to_seqscreeen_output> <function_name> <function_attributes (ifany)>
 ```
-**additional flags for some functions:**
+**additional inputs for some functions:**
 
   - "multi_tied" takes in the maximum number of tied taxids that share the same confidence.
   ```bash
