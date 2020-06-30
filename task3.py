@@ -7,15 +7,19 @@ Created on Thu Jun 18 13:28:04 2020
 """
 import copy
 import pandas as pd
-from argparse import ArgumentParser
+import argparse 
+import subprocess
 
-def krona_input(infile, outfile): 
+def make_krona(infile): 
     temp = pd.read_csv(infile, sep="\t")
     df = temp["multi_taxids_confidence"].str.split(",")
     df = pd.concat([temp["query"], df], 1)
     df = df.explode("multi_taxids_confidence")
     final = pd.concat([df["query"], df["multi_taxids_confidence"].str.split(":", expand=True)], 1)
-    final.to_csv(outfile, sep="\t", header=False, index=False)
+    input_prefix = infile.split(".")[0]
+    tsvname = f"{input_prefix}_kt_in.tsv"
+    final.to_csv(tsvname, sep="\t", header=False, index=False)
+    subprocess.run(["ktImportTaxonomy", "-q", "1", "-t", "2", "-s", "3", tsvname, "-o", f"{input_prefix}krona.html"])
 
 def sort_conf(cell, conf):
     """
