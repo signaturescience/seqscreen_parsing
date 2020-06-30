@@ -124,9 +124,10 @@ def assume_human(inputname):
 def main():
     parser = argparse.ArgumentParser(add_help=False)
     
-    parser.add_argument('input', type=str,)
-
     subparsers = parser.add_subparsers()
+    
+    parser.add_argument("input", type=str)
+    parser.add_argument("function", type=str)
     
     conf = subparsers.add_parser("parse_conf", parents = [parser],
         help="remove taxids below input confidence")
@@ -148,7 +149,6 @@ def main():
         help="count occurrence of each taxid in file")
     
     args = parser.parse_args()
-    print(args)
     
     if parse_conf: 
         parse_funcs(args.input, sort_conf, args.confidence)
@@ -164,5 +164,36 @@ def main():
         
     elif (count): 
         count_taxids(args.input)
+        
+        
+        
+            # parser.add_argument("function",
+    #                     nargs="?",
+    #                     choices=['parse_conf', 'remove_tied', 'remove_equal',
+    #                               'assume_human', "count_taxids"],)
+        
+    
+    
+    # args, sub_args = parser.parse_known_args()
+    # print(args, sub_args)
+    
+    # if args.function == "parse_conf":
+    #     parser = argparse.ArgumentParser()
+    #     parser.add_argument('-c', '--confidence')
+    #     args = parser.parse_args(sub_args)
+    #     parse_conf(args.inputf, args.confidence)
+
+    # elif args.function == "remove_tied":
+    #     parser = argparse.ArgumentParser()
+    #     parser.add_argument('-t', '--threshold')
+    #     args = parser.parse_args(sub_args)
+    #     remove_tied(args.inputf, args.threshold)
+
+    # elif args.function == ("remove_equal" or "assume_human" or "count_taxids"):
+    #     parser = argparse.ArgumentParser()
+    #     args = parser.parse_args(sub_args)
+    #     args.function(args.inputf)
+        
 
 main()
+
