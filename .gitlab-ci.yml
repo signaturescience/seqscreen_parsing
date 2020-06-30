@@ -4,10 +4,22 @@ pylint:
   before_script:
   script:
     - mkdir ./pylint
+<<<<<<< HEAD
+<<<<<<< HEAD
     - set -e
     - set -o pipefail
     - shopt -s globstar
     - pylint ./**/*.py -ry --output-format=text | tee ./pylint/pylint.txt || pylint-exit ${PIPESTATUS[0]}
+=======
+    - shopt -s globstar
+    - pylint ./**/*.py -ry --output-format=text | tee ./pylint/pylint.txt || true
+    - pylint-exit ${PIPESTATUS[0]}
+>>>>>>> d3e1ac97673ad134891a53231e925e0e5878775b
+=======
+    - shopt -s globstar
+    - pylint ./**/*.py -ry --output-format=text | tee ./pylint/pylint.txt || true
+    - pylint-exit ${PIPESTATUS[0]}
+>>>>>>> 8aa6e058b6f223d805f25479a3843ee038e63639
     - shopt -u globstar
     - PYLINT_SCORE=$(sed -n 's/^Your code has been rated at \([-0-9.]*\)\/.*/\1/p' ./pylint/pylint.txt)
     - anybadge --label=Pylint --file=pylint/pylint.svg --value=$PYLINT_SCORE 2=red 4=orange 8=yellow 10=green
