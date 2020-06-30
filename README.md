@@ -1,5 +1,3 @@
-<<<<<<< HEAD
-<<<<<<< HEAD
 ## reu2020_microbes
 
 This repository contains a series of scripts for extracting data from the seqscreen output.
@@ -47,25 +45,6 @@ python go_term_parse.py <path_to_seqscreen_output> ....
 
 ## Taxon Abundances
 
-Fill in with bit about task3 and the functionality of this script
-
-```bash
-python taxid_parse.py <path_to_seqscreen_output> ....
-```
-**optional flags:**
-
-  * explicitly state each of the command line input options
-
-
-**example:**
-```bash
-python taxid_parse.py <path_to_seqscreen_output> ....
-=======
-=======
->>>>>>> 8aa6e058b6f223d805f25479a3843ee038e63639
-# reu2020_microbes
-## Taxon Abundances
-
 Takes in a .tsv file of SeqScreen output. Creates the following files depending on which function is called: 
 
 - "count_taxid" creates an output file listing each taxid, the number of times it appears in the SeqScreen file, and its relative percentage compared to other taxids. 
@@ -74,21 +53,16 @@ Takes in a .tsv file of SeqScreen output. Creates the following files depending 
 - "multi_tied" takes in an input threshold and removes taxids that share the same confidence level, if the number of tied taxids are above the input threshold. Returns a version of the input file with “taxids” and “multi_taxid” columns edited to show changes, and a Krona plot based on the edited multi_taxid column.
 - "parse_conf" removes all taxids in the multi_taxid column whose confidences are below the input confidence level. Returns a version of the input file with “taxid” and “multi_taxid” columns edited to show removed taxids and a Krona plot based on the edited multi_taxid column.
 
-**example:**
 ```bash
-python taxidparse.py <path_to_seqscreeen_output> <function_name> <function_attributes (if any)> 
+python taxid_parse.py <path_to_seqscreen_output> python taxidparse.py <path_to_seqscreeen_output> <function_name> <function_attributes (ifany)>
 ```
 **additional flags for some functions:**
 
-  - "multi_tied" takes in the maximum number of tied taxids that share the same confidence allowed.
+  - "multi_tied" takes in the maximum number of tied taxids that share the same confidence.
   ```bash
     python taxidparse.py <path_to_seqscreeen_output> multi_tied -t <threshold>
 ```
   - "parse_conf" takes in the cutoff confidence level for taxids in the "multi_taxid" column.
   ```bash
     python taxidparse.py <path_to_seqscreeen_output> parse_conf -c <confidence>
-<<<<<<< HEAD
->>>>>>> d3e1ac97673ad134891a53231e925e0e5878775b
-=======
->>>>>>> 8aa6e058b6f223d805f25479a3843ee038e63639
 ```
