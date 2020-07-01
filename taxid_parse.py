@@ -21,7 +21,7 @@ def main():
                         nargs="?",
                         choices=['parse_conf', 'thresh_tied', 'all_tied',
                                  'assume_human', "count_taxid"],)
-    args, s_args = parser.parse_known_args()
+    args, sub_args = parser.parse_known_args()
 
     output_dir = "outputs/"
     if not os.path.exists(output_dir):
