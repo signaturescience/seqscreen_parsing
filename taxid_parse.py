@@ -37,8 +37,6 @@ def count_taxids(dframe, destname):
     summary = summary.reset_index()
     summary.columns = [tid, "count", "percentage"]
     summary.to_csv(destname, sep="\t", index=False)
-    # name = inputname.split(".")[0]
-    # summary.to_csv(f"{name}output.txt", sep="\t", index=False)
 
 def assume_human(dframe, destname):
     """
@@ -56,12 +54,9 @@ def assume_human(dframe, destname):
     a human sample.
 
     """
-    # dframe = pd.read_csv(inputname, sep="\t")
     dframe.loc[dframe["multi_taxids_confidence"].str.contains("9606:"),
                "taxid"] = 9606
     dframe.to_csv(destname, sep="\t", index=False)
-    # name = inputname.split(".")[0]
-    # dframe.to_csv(f"{name}output.txt", sep="\t", index=False)
 
 def sort_conf(cell, conf):
     """
@@ -145,7 +140,6 @@ def parse_funcs(dframe, destname, func, attr):
     attr : attributes needed to run func.
 
     """
-    # dframe = pd.read_csv(inputname, sep="\t")
     mtid = "multi_taxids_confidence"
 
     df2 = dframe[mtid]
@@ -157,39 +151,7 @@ def parse_funcs(dframe, destname, func, attr):
                      dframe.iloc[:, 4:17]], 1)
     df2 = df2.dropna()
     df2["taxid"] = df2["taxid"].astype(int)
-
-    # name = inputname.split(".")[0]
     df2.to_csv(destname, sep="\t", index=False)
-    # df2.to_csv(f"{name}output.txt", sep="\t", index=False)
-    # return f"{name}output.txt"
-
-def make_krona(infile):
-    """
-
-    Parameters
-    ----------
-    infile :  path to input file (str).
-
-    Returns
-    -------
-    None.
-
-    Generates a .tsv file as a Krona input.
-    Generates Krona chart using that file.
-
-    """
-    temp = pd.read_csv(infile, sep="\t")
-    mtid = "multi_taxids_confidence"
-    dframe = temp[mtid].str.split(",")
-    dframe = pd.concat([temp["query"], dframe], 1)
-    dframe = dframe.explode(mtid)
-    final = pd.concat([dframe["query"],
-                       dframe[mtid].str.split(":", expand=True)], 1)
-    input_prefix = infile.split(".")[0]
-    tsvname = f"{input_prefix}_kt_in.tsv"
-    final.to_csv(tsvname, sep="\t", header=False, index=False)
-    subprocess.run(["ktImportTaxonomy", "-q", "1", "-t", "2", "-s", "3",
-                    tsvname, "-o", f"{input_prefix}krona.html"], check=True)
 
 def main():
     """
