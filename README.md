@@ -55,15 +55,15 @@ Takes in a .tsv file of SeqScreen output. Creates the following files depending 
 - "parse_conf" removes all taxids in the multi_taxid column whose confidences are below the input confidence level. Returns a version of the input file with “taxid” and “multi_taxid” columns edited to show removed taxids and a Krona plot based on the edited multi_taxid column.
 
 ```bash
-python taxid_parse.py <path_to_seqscreen_output> python taxidparse.py <path_to_seqscreeen_output> <function_name> <function_attributes (ifany)>
+python taxid_parse.py <function_name> <path_to_seqscreen_output> <function_attributes (ifany)>
 ```
 **additional inputs for some functions:**
 
   - "multi_tied" takes in the maximum number of tied taxids that share the same confidence.
   ```bash
-    python taxidparse.py <path_to_seqscreeen_output> multi_tied -t <threshold>
+    python taxid_parse.py multi_tied <path_to_seqscreeen_output> <threshold>
 ```
   - "parse_conf" takes in the cutoff confidence level for taxids in the "multi_taxid" column.
   ```bash
-    python taxidparse.py <path_to_seqscreeen_output> parse_conf -c <confidence>
+    python taxid_parse.py parse_conf <path_to_seqscreeen_output> <confidence>
 ```
