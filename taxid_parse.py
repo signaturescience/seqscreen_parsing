@@ -8,10 +8,25 @@ Script to extract information regarding taxon abundances in sequences.
 import argparse
 import copy
 import subprocess
+import os
 import pandas as pd
 
-def count_taxids(inputname):
-    dframe = pd.read_csv(inputname, sep="\t")
+def count_taxids(dframe, destname):
+    """
+
+    Parameters
+    ----------
+    inputname : pandas dataframe representation of seqscreen output.
+    destname : path to output file (str).
+
+    Returns
+    -------
+    None.
+
+    Writes  file containing taxid frequencies.
+
+    """
+    # dframe = pd.read_csv(inputname, sep="\t")
     tid = "taxid"
 
     #count frequency of each taxid. first element does regular count,
@@ -21,15 +36,32 @@ def count_taxids(inputname):
     summary.loc['total'] = summary.sum(numeric_only=True, axis=0)
     summary = summary.reset_index()
     summary.columns = [tid, "count", "percentage"]
-    name = inputname.split(".")[0]
-    summary.to_csv(f"{name}output.txt", sep="\t", index=False)
+    summary.to_csv(destname, sep="\t", index=False)
+    # name = inputname.split(".")[0]
+    # summary.to_csv(f"{name}output.txt", sep="\t", index=False)
 
-def assume_human(inputname):
-    dframe = pd.read_csv(inputname, sep="\t")
+def assume_human(dframe, destname):
+    """
+
+    Parameters
+    ----------
+    inputname : path to input file (str).
+    destname : path to output file (str).
+
+    Returns
+    -------
+    None.
+
+    Edits taxid column to assume each sequence that contains the human taxid is
+    a human sample.
+
+    """
+    # dframe = pd.read_csv(inputname, sep="\t")
     dframe.loc[dframe["multi_taxids_confidence"].str.contains("9606:"),
                "taxid"] = 9606
-    name = inputname.split(".")[0]
-    dframe.to_csv(f"{name}output.txt", sep="\t", index=False)
+    dframe.to_csv(destname, sep="\t", index=False)
+    # name = inputname.split(".")[0]
+    # dframe.to_csv(f"{name}output.txt", sep="\t", index=False)
 
 def sort_conf(cell, conf):
     """
@@ -64,6 +96,23 @@ def sort_conf(cell, conf):
         return [max(final_tids, key=final_tids.get), strdict]
 
 def sort_tied(cell, thresh):
+    """
+
+    Parameters
+    ----------
+    cell : a string or pandas series representing a cell in the
+    multi_taxids_confidence column.
+
+    thresh : the max. number of taxids with the same confidence level.
+
+    Returns
+    -------
+    list
+        first element is the taxid with max. confidence once tied taxids
+        are removed. second element is edited multi_taxids_confidence cell for
+        that row.
+
+    """
     #removes all taxids of equally high confidence from a cell
     if not isinstance(cell, str):
         cell = cell.to_string()
@@ -86,17 +135,17 @@ def sort_tied(cell, thresh):
         strdict = temp.replace("}", "")
         return [max(taxids, key=taxids.get), strdict]
 
-def parse_funcs(inputname, func, attr):
+def parse_funcs(dframe, destname, func, attr):
     """
 
     Parameters
     ----------
-    inputname : path to input file
+    inputname : pandas dataframe of input file.
     func : either sort_conf or sort_tied
     attr : attributes needed to run func.
 
     """
-    dframe = pd.read_csv(inputname, sep="\t")
+    # dframe = pd.read_csv(inputname, sep="\t")
     mtid = "multi_taxids_confidence"
 
     df2 = dframe[mtid]
@@ -109,13 +158,26 @@ def parse_funcs(inputname, func, attr):
     df2 = df2.dropna()
     df2["taxid"] = df2["taxid"].astype(int)
 
-    name = inputname.split(".")[0]
-    df2.to_csv(f"{name}output.txt", sep="\t", index=False)
-    return f"{name}output.txt"
-
-print(parse_funcs("/Users/Student/Desktop/sampleinput.tsv", sort_conf, 0.8))
+    # name = inputname.split(".")[0]
+    df2.to_csv(destname, sep="\t", index=False)
+    # df2.to_csv(f"{name}output.txt", sep="\t", index=False)
+    # return f"{name}output.txt"
 
 def make_krona(infile):
+    """
+
+    Parameters
+    ----------
+    infile :  path to input file (str).
+
+    Returns
+    -------
+    None.
+
+    Generates a .tsv file as a Krona input.
+    Generates Krona chart using that file.
+
+    """
     temp = pd.read_csv(infile, sep="\t")
     mtid = "multi_taxids_confidence"
     dframe = temp[mtid].str.split(",")
@@ -127,50 +189,73 @@ def make_krona(infile):
     tsvname = f"{input_prefix}_kt_in.tsv"
     final.to_csv(tsvname, sep="\t", header=False, index=False)
     subprocess.run(["ktImportTaxonomy", "-q", "1", "-t", "2", "-s", "3",
-                    tsvname, "-o", f"{input_prefix}krona.html"])
+                    tsvname, "-o", f"{input_prefix}krona.html"], check=True)
 
 def main():
+    """
+    Runs taxid parsing from command line.
+    Takes in .tsv file as input.
+
+    """
     parser = argparse.ArgumentParser(add_help=False)
     parser.add_argument("function",
                         nargs="?",
                         choices=['parse_conf', 'thresh_tied', 'all_tied',
                                  'assume_human', "count_taxid"],)
-
     args, sub_args = parser.parse_known_args()
+
+    output_dir = "outputs/"
+    if not os.path.exists(output_dir):
+        os.makedirs(output_dir)
 
     if args.function == "parse_conf":
         parser = argparse.ArgumentParser()
         parser.add_argument("input", type=str)
-        parser.add_argument('-c', '--confidence', type=float)
+        parser.add_argument("confidence", type=float)
         args = parser.parse_args(sub_args)
-        fname = parse_funcs(args.input, sort_conf, args.confidence)
-        make_krona(fname)
+        dframe = pd.read_csv(args.input, sep="\t")
+        filename = (args.input.split("/")[-1]).split(".")[0]
+        destname = f"{output_dir}{filename}_output.txt"
+        parse_funcs(dframe, destname, sort_conf, args.confidence)
+        make_krona(destname)
 
     elif args.function == "thresh_tied":
         parser = argparse.ArgumentParser()
         parser.add_argument("input", type=str)
-        parser.add_argument('-t', '--threshold', type=int)
+        parser.add_argument("threshold", type=int)
         args = parser.parse_args(sub_args)
-        fname = parse_funcs(args.input, sort_tied, args.threshold)
-        make_krona(fname)
+        dframe = pd.read_csv(args.input, sep="\t")
+        filename = (args.input.split("/")[-1]).split(".")[0]
+        destname = f"{output_dir}{filename}_output.txt"
+        parse_funcs(dframe, destname, sort_tied, args.threshold)
+        make_krona(destname)
 
     elif args.function == "all_tied":
         parser = argparse.ArgumentParser()
         parser.add_argument("input", type=str)
         args = parser.parse_args(sub_args)
-        fname = parse_funcs(args.input, sort_tied, 1)
-        make_krona(fname)
+        dframe = pd.read_csv(args.input, sep="\t")
+        filename = (args.input.split("/")[-1]).split(".")[0]
+        destname = f"{output_dir}{filename}_output.txt"
+        parse_funcs(dframe, destname, sort_tied, 1)
+        make_krona(destname)
 
     elif args.function == "assume_human":
         parser = argparse.ArgumentParser()
         parser.add_argument("input", type=str)
         args = parser.parse_args(sub_args)
-        assume_human(args.input)
+        dframe = pd.read_csv(args.input, sep="\t")
+        filename = (args.input.split("/")[-1]).split(".")[0]
+        destname = f"{output_dir}{filename}_output.txt"
+        assume_human(dframe, destname)
 
     elif args.function == "count_taxid":
         parser = argparse.ArgumentParser()
         parser.add_argument("input", type=str)
         args = parser.parse_args(sub_args)
-        count_taxids(args.input)
+        dframe = pd.read_csv(args.input, sep="\t")
+        filename = (args.input.split("/")[-1]).split(".")[0]
+        destname = f"{output_dir}{filename}_output.txt"
+        count_taxids(dframe, destname)
 
 main()
