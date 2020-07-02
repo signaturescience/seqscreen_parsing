@@ -23,10 +23,12 @@ def krona_plot(inputfilename):
     outfile_name = f"{inputfilename}_krona.txt"
     outfile = open(outfile_name, "w")
     final.to_csv(outfile, sep="\t", header=False, index=False)
+    outfile.close()
 
     krona_outfile_name = f"{outfile_name}.html"
-    open(krona_outfile_name, "w")
+    krona_outfile = open(krona_outfile_name, "w")
     subprocess.Popen(f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}", shell=True).wait()
+    krona_outfile.close()
 
 def bpoc_parse(dataframe, filename, output_dir):
     """
