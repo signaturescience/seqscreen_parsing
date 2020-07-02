@@ -34,7 +34,7 @@ def main():
     go_nums = args.go_numbers
     for go_num in go_nums:
         seqscreen_parse_utils.go_term_parse(dataframe, go_num, filename, output_dir)
-        krona_input = os.path.join(output_dir, filename + "_revised.tsv")
+        krona_input = os.path.join(output_dir, filename + "_go_num_{go_num}_revised.tsv")
         seqscreen_parse_utils.krona_plot(krona_input)
 
 
