@@ -33,8 +33,10 @@ def main():
     dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
     go_nums = args.go_numbers
     for go_num in go_nums:
+        if go_num[:3] == "GO:":
+            go_num = go_num[3:]
         seqscreen_parse_utils.go_term_parse(dataframe, go_num, filename, output_dir)
-        krona_input = os.path.join(output_dir, filename + "_go_num_{go_num}_revised.tsv")
+        krona_input = os.path.join(output_dir, filename + f"_go_num_{go_num}_revised.tsv")
         seqscreen_parse_utils.krona_plot(krona_input)
 
 

@@ -2,3 +2,4 @@
 .DS_Store
 ._.gitlab-ci.yml
 *.pyc
+outputs/
