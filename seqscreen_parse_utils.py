@@ -8,6 +8,8 @@ import copy
 import subprocess
 import pandas as pd
 
+pd.set_option('display.max_colwidth', 10000)
+
 def count_taxids(dframe, destname):
     """
 
