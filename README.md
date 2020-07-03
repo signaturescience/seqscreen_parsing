@@ -47,7 +47,9 @@ python taxid_parse.py examples/SRR10903401_seqscreen_report.tsv GO:0016310 GO:00
 ## Taxon Abundances
 
 Takes in a .tsv file of SeqScreen output. Creates the following files depending on which function is called: 
-
+```bash
+python taxid_parse.py <path_to_seqscreen_output> --function <function_attributes(ifany)>
+```
 - "count_taxid" creates an output file listing each taxid, the number of times it appears in the SeqScreen file, and its relative percentage compared to other taxids. 
 ```bash
 python taxid_parse.py testinput.tsv --count_taxid
