@@ -22,11 +22,11 @@ def main():
                         help="remove taxids below input confidence")
     parser.add_argument("--thresh_tied", type=int,
                         help="remove tied taxids above given threshold")
-    parser.add_argument("--all_tied",
+    parser.add_argument("--all_tied", action='store_true',
                         help="remove all tied taxids")
-    parser.add_argument("--assume_human",
+    parser.add_argument("--assume_human", action='store_true',
                         help="assume human sequence if human taxid is in multi_taxid")
-    parser.add_argument("--count_taxid",
+    parser.add_argument("--count_taxid", action='store_true',
                         help="count frequency and percentage of multi_taxids")
 
     args = parser.parse_args()
