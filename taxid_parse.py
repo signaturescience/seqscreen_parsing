@@ -30,10 +30,10 @@ def main():
                         help="count frequency and percentage of multi_taxids")
 
     args = parser.parse_args()
-    dframe = pd.read_csv(args.input, sep="\t")
+    dframe = pd.read_csv(args.input, sep="\t", na_values="-")
+    dframe = dframe.dropna()
 
     tempfile = args.input.split(".")[0].split("/")[-1]
-    # dirname = args.input.split(tempfile)[0] + "outputs/"
 
     if not os.path.exists("outputs/"):
         os.makedirs("outputs/")

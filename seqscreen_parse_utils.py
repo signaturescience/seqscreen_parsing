@@ -114,7 +114,7 @@ def go_term_parse(dataframe, go_num, filename, output_dir):
     f_out.close()
     return f_out
 
-pd.set_option('display.max_colwidth', 10000)
+pd.set_option('display.max_colwidth', 1000000)
 
 def count_taxids(dframe, destname):
     """
@@ -179,9 +179,9 @@ def sort_conf(cell, conf):
     """
     if not isinstance(cell, str):
         cell = cell.to_string()
-        pd.set_option('max_colwidth', 100000)
         cell = cell.split("confidence")[1]
 
+    #turns cell into dictionary
     taxids = {int(k): float(v) for k, v in [s.split(':') for s in cell.split(",")]}
     final_tids = copy.deepcopy(taxids)
 
