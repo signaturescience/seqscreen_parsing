@@ -22,39 +22,41 @@ def main():
                         help="remove taxids below input confidence")
     parser.add_argument("--thresh_tied", type=int,
                         help="remove tied taxids above given threshold")
-    parser.add_argument("--all_tied",
+    parser.add_argument("--all_tied", action='store_true',
                         help="remove all tied taxids")
-    parser.add_argument("--assume_human",
+    parser.add_argument("--assume_human", action='store_true',
                         help="assume human sequence if human taxid is in multi_taxid")
-    parser.add_argument("--count_taxid",
+    parser.add_argument("--count_taxid", action='store_true',
                         help="count frequency and percentage of multi_taxids")
 
     args = parser.parse_args()
-    dframe = pd.read_csv(args.input, sep="\t")
+    dframe = pd.read_csv(args.input, sep="\t", na_values="-")
+    dframe = dframe.dropna()
 
     tempfile = args.input.split(".")[0].split("/")[-1]
-    dirname = args.input.split(tempfile)[0] + "outputs/"
 
-    if not os.path.exists(dirname):
-        os.makedirs(dirname)
-    destname = dirname + tempfile + ".tsv"
+    if not os.path.exists("outputs/"):
+        os.makedirs("outputs/")
 
     if args.all_tied:
-        spu.parse_funcs(dframe, destname, spu.sort_tied, 1)
-        spu.make_krona(destname)
+        spu.parse_funcs(dframe, f"outputs/{tempfile}_all_tied.tsv",
+                        spu.sort_tied, 1)
+        spu.make_krona(f"outputs/{tempfile}_all_tied.tsv")
 
     if args.parse_conf is not None:
-        spu.parse_funcs(dframe, destname, spu.sort_conf, args.parse_conf)
-        spu.make_krona(destname)
+        spu.parse_funcs(dframe, f"outputs/{tempfile}_parse_conf.tsv",
+                        spu.sort_conf, args.parse_conf)
+        spu.make_krona(f"outputs/{tempfile}_parse_conf.tsv")
 
     if args.thresh_tied is not None:
-        spu.parse_funcs(dframe, destname, spu.sort_tied, args.thresh_tied)
-        spu.make_krona(destname)
+        spu.parse_funcs(dframe, f"outputs/{tempfile}_thresh_tied.tsv",
+                        spu.sort_tied, args.thresh_tied)
+        spu.make_krona(f"outputs/{tempfile}_thresh_tied.tsv")
 
     if args.assume_human:
-        spu.assume_human(dframe, destname)
+        spu.assume_human(dframe, f"outputs/{tempfile}_assume_human.tsv")
 
     if args.count_taxid:
-        spu.count_taxids(dframe, destname)
+        spu.count_taxids(dframe, f"outputs/{tempfile}_count_taxid.tsv")
 
 main()

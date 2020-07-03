@@ -24,10 +24,12 @@ def krona_plot(inputfilename):
     outfile_name = f"{inputfilename}_krona.txt"
     outfile = open(outfile_name, "w")
     final.to_csv(outfile, sep="\t", header=False, index=False)
+    outfile.close()
 
     krona_outfile_name = f"{outfile_name}.html"
-    open(krona_outfile_name, "w")
+    krona_outfile = open(krona_outfile_name, "w")
     subprocess.Popen(f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}", shell=True).wait()
+    krona_outfile.close()
 
 def bpoc_parse(dataframe, filename, output_dir):
     """
@@ -112,6 +114,8 @@ def go_term_parse(dataframe, go_num, filename, output_dir):
     f_out.close()
     return f_out
 
+pd.set_option('display.max_colwidth', 1000000)
+
 def count_taxids(dframe, destname):
     """
 
@@ -175,9 +179,9 @@ def sort_conf(cell, conf):
     """
     if not isinstance(cell, str):
         cell = cell.to_string()
-        pd.set_option('max_colwidth', 100000)
         cell = cell.split("confidence")[1]
 
+    #turns cell into dictionary
     taxids = {int(k): float(v) for k, v in [s.split(':') for s in cell.split(",")]}
     final_tids = copy.deepcopy(taxids)
 
