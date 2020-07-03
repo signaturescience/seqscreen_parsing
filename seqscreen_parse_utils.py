@@ -250,7 +250,7 @@ def parse_funcs(dframe, destname, func, attr):
     df2 = dframe[mtid]
     df2 = df2.to_frame()
     df2 = df2.apply(func, 1, result_type='expand', args=[attr])
-    df2 = df2.rename(columns={0:"taxid", 1:"multi_taxids_confidence"})
+    df2 = df2.rename({0:"taxid", 1:"multi_taxids_confidence"}, axis='columns')
 
     df2 = pd.concat([dframe["query"], df2["taxid"], dframe["go"], df2["multi_taxids_confidence"],
                      dframe.iloc[:, 4:17]], 1)
