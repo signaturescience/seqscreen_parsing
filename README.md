@@ -49,21 +49,22 @@ python taxid_parse.py examples/SRR10903401_seqscreen_report.tsv GO:0016310 GO:00
 Takes in a .tsv file of SeqScreen output. Creates the following files depending on which function is called: 
 
 - "count_taxid" creates an output file listing each taxid, the number of times it appears in the SeqScreen file, and its relative percentage compared to other taxids. 
-- "assume_human" assumes the sequence is human if the human taxi (9606) is encountered in the multi_taxid column. Returns a version of the input file with an edited “taxid” column.
-- "all_tied" removes all taxids that share the same confidence level with at least one other taxid. Returns a version of the input file with the taxid and multi_taxid columns edited to show changes. Also returns a Krona plot based on the edited multi_taxid column.
-- "multi_tied" takes in an input threshold and removes taxids that share the same confidence level, if the number of tied taxids are above the input threshold. Returns a version of the input file with “taxids” and “multi_taxid” columns edited to show changes, and a Krona plot based on the edited multi_taxid column.
-- "parse_conf" removes all taxids in the multi_taxid column whose confidences are below the input confidence level. Returns a version of the input file with “taxid” and “multi_taxid” columns edited to show removed taxids and a Krona plot based on the edited multi_taxid column.
-
 ```bash
-python taxid_parse.py <function_name> <path_to_seqscreen_output> <function_attributes (ifany)>
+python taxid_parse.py testinput.tsv --count_taxid
 ```
-**additional inputs for some functions:**
-
-  - "multi_tied" takes in the maximum number of tied taxids that share the same confidence.
-  ```bash
-    python taxid_parse.py multi_tied <path_to_seqscreeen_output> <threshold>
+- "assume_human" assumes the sequence is human if the human taxi (9606) is encountered in the multi_taxid column. Returns a version of the input file with an edited “taxid” column.
+```bash
+python taxid_parse.py testinput.tsv --assume_human
 ```
-  - "parse_conf" takes in the cutoff confidence level for taxids in the "multi_taxid" column.
-  ```bash
-    python taxid_parse.py parse_conf <path_to_seqscreeen_output> <confidence>
+- "all_tied" removes all taxids that share the same confidence level with at least one other taxid. Returns a version of the input file with the taxid and multi_taxid columns edited to show changes. Also returns a Krona plot based on the edited multi_taxid column.
+```bash
+python taxid_parse.py testinput.tsv --all_tied
+```
+- "thresh_tied" takes in an input threshold and removes taxids that share the same confidence level, if the number of tied taxids are above the input threshold. Returns a version of the input file with “taxids” and “multi_taxid” columns edited to show changes, and a Krona plot based on the edited multi_taxid column.
+```bash
+python taxid_parse.py testinput.tsv --thresh_tied 10
+```
+- "parse_conf" removes all taxids in the multi_taxid column whose confidences are below the input confidence level. Returns a version of the input file with “taxid” and “multi_taxid” columns edited to show removed taxids and a Krona plot based on the edited multi_taxid column.
+```bash
+python taxid_parse.py testinput.tsv --parse_conf 0.8
 ```
