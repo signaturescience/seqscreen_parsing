@@ -178,7 +178,7 @@ def sort_conf(cell, conf):
         pd.set_option('max_colwidth', 100000)
         cell = cell.split("confidence")[1]
 
-    taxids = eval("{" + cell + "}")
+    taxids = {int(k): float(v) for k, v in [s.split(':') for s in cell.split(",")]}
     final_tids = copy.deepcopy(taxids)
 
     #removes taxids below conf
@@ -215,7 +215,7 @@ def sort_tied(cell, thresh):
         cell = cell.split("confidence")[1]
 
     #converts string into dictionary
-    taxids = eval("{" + cell + "}")
+    taxids = {int(k): float(v) for k, v in [s.split(':') for s in cell.split(",")]}
     rev = {}
 
     for key, value in taxids.items():
