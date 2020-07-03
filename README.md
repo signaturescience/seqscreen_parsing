@@ -70,7 +70,7 @@ python taxid_parse.py testinput.tsv --all_tied
 ```
 - "thresh_tied" takes in an input threshold and removes taxids that share the same confidence level, if the number of tied taxids are above the input threshold. Returns a version of the input file with “taxids” and “multi_taxid” columns edited to show changes, and a Krona plot based on the edited multi_taxid column.
 ```bash
-python taxid_parse.py testinput.tsv --thresh_tied 10
+python taxid_parse.py testinput.tsv --thresh_tied 2
 ```
 - "parse_conf" removes all taxids in the multi_taxid column whose confidences are below the input confidence level. Returns a version of the input file with “taxid” and “multi_taxid” columns edited to show removed taxids and a Krona plot based on the edited multi_taxid column.
 ```bash
