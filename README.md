@@ -52,17 +52,27 @@ python go_term_parse.py examples/SRR10903401_seqscreen_report.tsv GO:0016310 GO:
 
 ## Taxon Abundances
 
-Fill in with bit about task3 and the functionality of this script
-
+Takes in a .tsv file of SeqScreen output. Creates the following files depending on which function is called: 
 ```bash
-python taxid_parse.py <path_to_seqscreen_output> ....
+python taxid_parse.py <path_to_seqscreen_output> --function <function_attributes(ifany)>
 ```
-**optional flags:**
-
-  * explicitly state each of the command line input options
-
-
-**example:**
+- "count_taxid" creates an output file listing each taxid, the number of times it appears in the SeqScreen file, and its relative percentage compared to other taxids. 
 ```bash
-python taxid_parse.py <path_to_seqscreen_output> ....
+python taxid_parse.py testinput.tsv --count_taxid
+```
+- "assume_human" assumes the sequence is human if the human taxi (9606) is encountered in the multi_taxid column. Returns a version of the input file with an edited “taxid” column.
+```bash
+python taxid_parse.py testinput.tsv --assume_human
+```
+- "all_tied" removes all taxids that share the same confidence level with at least one other taxid. Returns a version of the input file with the taxid and multi_taxid columns edited to show changes. Also returns a Krona plot based on the edited multi_taxid column.
+```bash
+python taxid_parse.py testinput.tsv --all_tied
+```
+- "thresh_tied" takes in an input threshold and removes taxids that share the same confidence level, if the number of tied taxids are above the input threshold. Returns a version of the input file with “taxids” and “multi_taxid” columns edited to show changes, and a Krona plot based on the edited multi_taxid column.
+```bash
+python taxid_parse.py testinput.tsv --thresh_tied 10
+```
+- "parse_conf" removes all taxids in the multi_taxid column whose confidences are below the input confidence level. Returns a version of the input file with “taxid” and “multi_taxid” columns edited to show removed taxids and a Krona plot based on the edited multi_taxid column.
+```bash
+python taxid_parse.py testinput.tsv --parse_conf 0.8
 ```
