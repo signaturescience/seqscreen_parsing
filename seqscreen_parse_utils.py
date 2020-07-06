@@ -194,6 +194,8 @@ def sort_conf(cell, conf):
         temp = repr(final_tids).replace("{", "")
         strdict = temp.replace("}", "")
         return [max(final_tids, key=final_tids.get), strdict]
+    else:
+        return ["", ""]
 
 def sort_tied(cell, thresh):
     """
@@ -234,6 +236,8 @@ def sort_tied(cell, thresh):
         temp = repr(taxids).replace("{", "")
         strdict = temp.replace("}", "")
         return [max(taxids, key=taxids.get), strdict]
+    else:
+        return ["", ""]
 
 def parse_funcs(dframe, destname, func, attr):
     """
@@ -250,6 +254,7 @@ def parse_funcs(dframe, destname, func, attr):
     df2 = dframe[mtid]
     df2 = df2.to_frame()
     df2 = df2.apply(func, 1, result_type='expand', args=[attr])
+    df2 = df2.replace({"": None})
     df2 = df2.rename(columns={0:"taxid", 1:"multi_taxids_confidence"})
 
     df2 = pd.concat([dframe["query"], df2["taxid"], dframe["go"], df2["multi_taxids_confidence"],
