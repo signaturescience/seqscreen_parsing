@@ -16,7 +16,7 @@ def main():
     Takes in .tsv file as input.
 
     """
-    parser = argparse.ArgumentParser(add_help=False)
+    parser = argparse.ArgumentParser()
     parser.add_argument("input", type=str, help="filepath to input .tsv")
     parser.add_argument("--parse_conf", type=float,
                         help="remove taxids below input confidence")

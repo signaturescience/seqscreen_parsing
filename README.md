@@ -54,7 +54,7 @@ python go_term_parse.py examples/SRR10903401_seqscreen_report.tsv GO:0016310 GO:
 
 Takes in a .tsv file of SeqScreen output. Creates the following files depending on which function is called: 
 ```bash
-python taxid_parse.py <path_to_seqscreen_output> --function <function_attributes(ifany)>
+python taxid_parse.py <path_to_seqscreen_output> [--parse_conf PARSE_CONF][--thresh_tied THRESH_TIED] [--all_tied][--assume_human] [--count_taxid] <function_attributes(ifany)>
 ```
 - "count_taxid" creates an output file listing each taxid, the number of times it appears in the SeqScreen file, and its relative percentage compared to other taxids. 
 ```bash
