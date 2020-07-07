@@ -193,8 +193,7 @@ def sort_conf(cell, conf):
     if final_tids != {}:
         strdict = repr(taxids).replace("{", "").replace("}", "")
         return [max(final_tids, key=final_tids.get), strdict]
-    else:
-        return [None, None]
+    return [None, None]
 
 def sort_tied(cell, thresh):
     """
@@ -234,8 +233,7 @@ def sort_tied(cell, thresh):
     if taxids != {}:
         strdict = repr(taxids).replace("{", "").replace("}", "")
         return [max(taxids, key=taxids.get), strdict]
-    else:
-        return [None, None]
+    return [None, None]
 
 def parse_funcs(dframe, destname, func, attr):
     """
@@ -257,6 +255,8 @@ def parse_funcs(dframe, destname, func, attr):
                      dframe.iloc[:, 4:17]], 1)
     df2 = df2.dropna()
     df2["taxid"] = df2["taxid"].astype(int)
+    if len(df2.index) < 1:
+        print("no samples in input file fit given criteria, empty file returned")
     df2.to_csv(destname, sep="\t", index=False)
 
 def make_krona(infile):
@@ -275,6 +275,10 @@ def make_krona(infile):
 
     """
     temp = pd.read_csv(infile, sep="\t")
+
+    if len(temp.index) < 1:
+        return
+
     mtid = "multi_taxids_confidence"
     dframe = temp[mtid].str.split(",")
     dframe = pd.concat([temp["query"], dframe], 1)
