@@ -18,10 +18,10 @@ def krona_plot(inputfilename):
     dataframe = temp["multi_taxids_confidence"].str.split(",")
     dataframe = pd.concat([temp["query"], dataframe], 1)
     dataframe = dataframe.explode("multi_taxids_confidence")
-    if (dataframe is None):
-        return krona_outfile.close()
+    if dataframe is None:
+        return
     final = pd.concat([dataframe["query"], dataframe["multi_taxids_confidence"]
-        .str.split(":", expand=True)], 1)
+                       .str.split(":", expand=True)], 1)
 
     outfile_name = f"{inputfilename}_krona.txt"
     outfile = open(outfile_name, "w")
@@ -30,7 +30,10 @@ def krona_plot(inputfilename):
 
     krona_outfile_name = f"{outfile_name}.html"
     krona_outfile = open(krona_outfile_name, "w")
-    subprocess.Popen(f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}", shell=True).wait()
+    subprocess.Popen(
+        f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}",
+        shell=True
+        ).wait()
     krona_outfile.close()
 
 def bpoc_parse(dataframe, filename, output_dir):
@@ -59,7 +62,10 @@ def bpoc_parse(dataframe, filename, output_dir):
     # What taxid, organism, gene_name, uniprot, and uniprot evalues
     # were assigned to the BPoCs within the sample?
     bpocs_series = df_bpocs[bpocs].astype(int).sum(0)
-    bpoc_counts = pd.DataFrame({'number':bpocs_series.values, 'percentage':bpocs_series.values/total_rows}, index=bpocs_series.index)
+    bpoc_counts = pd.DataFrame(
+        {'number':bpocs_series.values,
+         'percentage':bpocs_series.values/total_rows},
+        index=bpocs_series.index)
     f_out = open(os.path.join(output_dir, filename + "_summary.txt"), "w") # summary file
     f_out.write(bpoc_counts.to_string())
     f_out.write("\n")
