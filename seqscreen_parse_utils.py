@@ -64,7 +64,7 @@ def bpoc_parse(dataframe, filename, output_dir):
     bpocs_series = df_bpocs[bpocs].astype(int).sum(0)
     bpoc_counts = pd.DataFrame(
         {'number':bpocs_series.values,
-         'percentage':bpocs_series.values/total_rows},
+         'percentage':bpocs_series.values/valid_rows},
         index=bpocs_series.index)
     f_out = open(os.path.join(output_dir, filename + "_summary.txt"), "w") # summary file
     f_out.write(bpoc_counts.to_string())
@@ -73,7 +73,8 @@ def bpoc_parse(dataframe, filename, output_dir):
     f_out.write("\n")
     f_out.write(f"Total rows excluding dashes: {valid_rows}")
     f_out.write("\n")
-    f_out.write(f"Percentage of bpoc in sample: {bpoc_rows/(1.0*total_rows)}")
+    f_out.write("Percentage: bpoc in sample/number of rows without dashes: ")
+    f_out.write(str(bpoc_rows/(1.0*valid_rows)))
     f_out.write("\n\n")
 
     # What taxid, organism, gene_name, uniprot, and uniprot
