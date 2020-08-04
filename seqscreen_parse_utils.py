@@ -18,6 +18,8 @@ def krona_plot(inputfilename):
     dataframe = temp["multi_taxids_confidence"].str.split(",")
     dataframe = pd.concat([temp["query"], dataframe], 1)
     dataframe = dataframe.explode("multi_taxids_confidence")
+    if dataframe is None:
+        return
     final = pd.concat([dataframe["query"], dataframe["multi_taxids_confidence"]
                        .str.split(":", expand=True)], 1)
 
@@ -28,7 +30,10 @@ def krona_plot(inputfilename):
 
     krona_outfile_name = f"{outfile_name}.html"
     krona_outfile = open(krona_outfile_name, "w")
-    subprocess.Popen(f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}", shell=True).wait()
+    subprocess.Popen(
+        f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}",
+        shell=True
+        ).wait()
     krona_outfile.close()
 
 def bpoc_parse(dataframe, filename, output_dir):
@@ -42,23 +47,41 @@ def bpoc_parse(dataframe, filename, output_dir):
 
     elems = ["taxid", "organism", "gene_name", "uniprot", "uniprot evalue"]
 
+    total_rows = len(dataframe.index)
+
+    # All rows that are non dash, aka have a GO term assigned
+    idx = dataframe[dataframe['go'] == '-'].index
+    df_valid = dataframe.drop(idx)
+    valid_rows = len(df_valid.index)
+
+    # All rows that have at least one BPoC
     df_bpocs = dataframe[dataframe[bpocs].replace('-', 0).astype(int).sum(1) > 0]
+    bpoc_rows = len(df_bpocs.index)
     df_bpocs.to_csv(os.path.join(output_dir, filename + "_revised.tsv"), sep='\t', index=False)
 
     # What taxid, organism, gene_name, uniprot, and uniprot evalues
     # were assigned to the BPoCs within the sample?
-    bpoc_counts = df_bpocs[bpocs].astype(int).sum(0)
+    bpocs_series = df_bpocs[bpocs].astype(int).sum(0)
+    bpoc_counts = pd.DataFrame(
+        {'number':bpocs_series.values,
+         'percentage':bpocs_series.values/valid_rows},
+        index=bpocs_series.index)
     f_out = open(os.path.join(output_dir, filename + "_summary.txt"), "w") # summary file
     f_out.write(bpoc_counts.to_string())
     f_out.write("\n")
-    f_out.write(f"Percentage of bpoc in sample:{len(df_bpocs.index)/len(dataframe.index)}")
+    f_out.write(f"Total rows including dashes: {total_rows}")
+    f_out.write("\n")
+    f_out.write(f"Total rows excluding dashes: {valid_rows}")
+    f_out.write("\n")
+    f_out.write("Percentage: bpoc in sample/number of rows without dashes: ")
+    f_out.write(str(bpoc_rows/(1.0*valid_rows)))
     f_out.write("\n\n")
 
     # What taxid, organism, gene_name, uniprot, and uniprot
     # evalues were assigned to the BPoCs within the sample?
     f_out.write("Taxid, organism, gene_name, uniprot, and uniprot evalues per BPoC:")
     for bpoc in bpocs:
-        if bpoc_counts[bpoc] > 0:
+        if bpoc_counts.at[bpoc, 'number'] > 0:
             bpoc_elems = df_bpocs[df_bpocs[bpoc].astype(int) > 0][elems]
             f_out.write(f"\n{bpoc} \n")
             elems_in_bpoc = pd.Series(bpoc_elems.transpose().to_numpy().tolist(),
