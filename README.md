@@ -102,7 +102,6 @@ python report_vis.py examples/Filtered_Kraken2_Reports -k examples/Sample_Groupi
 
 <br/><br/>
 
-
 ## Visualising SeqScreen Outputs 
 
 Taking in the path to a directory containing only SeqScreen outputs (except for hidden files), creates an interactive stacked bar chart. By default, it visualises taxa using taxonomic ranks assigned by SeqScreen.
