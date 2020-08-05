@@ -1,0 +1,43 @@
+  2.01	95000	95000	U	0	unclassified
+ 97.99	4624810	0	R	1	root
+ 97.95	4623167	0	R1	131567	  cellular organisms
+ 97.95	4623167	0	D	2759	    Eukaryota
+ 97.95	4623167	0	D1	33154	      Opisthokonta
+ 97.95	4623167	0	K	33208	        Metazoa
+ 97.95	4623167	0	K1	6072	          Eumetazoa
+ 97.95	4623167	0	K2	33213	            Bilateria
+ 97.95	4623167	0	K3	33511	              Deuterostomia
+ 97.95	4623167	0	P	7711	                Chordata
+ 97.95	4623167	0	P1	89593	                  Craniata
+ 97.95	4623167	0	P2	7742	                    Vertebrata
+ 97.95	4623167	0	P3	7776	                      Gnathostomata
+ 97.95	4623167	0	P4	117570	                        Teleostomi
+ 97.95	4623167	0	P5	117571	                          Euteleostomi
+ 97.95	4623167	0	P6	8287	                            Sarcopterygii
+ 97.95	4623167	0	P7	1338369	                              Dipnotetrapodomorpha
+ 97.95	4623167	0	P8	32523	                                Tetrapoda
+ 97.95	4623167	0	P9	32524	                                  Amniota
+ 97.95	4623167	0	C	40674	                                    Mammalia
+ 97.95	4623167	0	C1	32525	                                      Theria
+ 97.95	4623167	0	C2	9347	                                        Eutheria
+ 97.95	4623167	0	C3	1437010	                                          Boreoeutheria
+ 97.95	4623167	0	C4	314146	                                            Euarchontoglires
+ 97.95	4623167	0	O	9443	                                              Primates
+ 97.95	4623167	0	O1	376913	                                                Haplorrhini
+ 97.95	4623167	0	O2	314293	                                                  Simiiformes
+ 97.95	4623167	0	O3	9526	                                                    Catarrhini
+ 97.95	4623167	0	O4	314295	                                                      Hominoidea
+ 97.95	4623167	0	F	9604	                                                        Hominidae
+ 97.95	4623167	0	F1	207598	                                                          Homininae
+ 97.95	4623167	0	G	9605	                                                            Homo
+ 97.95	4623167	4623167	S	9606	                                                              Homo sapiens
+  0.03	1643	0	D	10239	  Viruses
+  0.03	1643	0	D1	2731342	    Monodnaviria
+  0.03	1643	0	K	2732091	      Sangervirae
+  0.03	1643	0	P	2732412	        Phixviricota
+  0.03	1643	0	C	2732413	          Malgrandaviricetes
+  0.03	1643	0	O	2732414	            Petitvirales
+  0.03	1643	0	F	10841	              Microviridae
+  0.03	1643	0	F1	1910950	                Bullavirinae
+  0.03	1643	0	G	1910954	                  Sinsheimervirus
+  0.03	1643	1643	S	10847	                    Escherichia virus phiX174
