@@ -100,7 +100,6 @@ python report_vis.py <path_to_directory> -k  <path_to_groups> <taxids>
 python report_vis.py examples/Filtered_Kraken2_Reports -k examples/Sample_Groupings.txt 9606 10847
 ```
 
-<br/><br/>
 
 ## Visualising SeqScreen Outputs 
 
