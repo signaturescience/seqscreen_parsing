@@ -76,3 +76,50 @@ python taxid_parse.py examples/testinput.tsv --thresh_tied 2
 ```bash
 python taxid_parse.py examples/testinput.tsv --parse_conf 0.8
 ```
+
+## Report Visualisation 
+
+Contains visualisation tools for use on SeqScreen outputs and Kraken2 Reports, showing the distribution of taxa across multiple samples. 
+
+Users must install [altair](https://altair-viz.github.io/getting_started/installation.html) in addition to the dependencies listed above.
+
+## Visualizing Kraken2 Reports
+
+Takes in the following and creates an interactive stacked, grouped bar chart. 
+1. the path to a directory containing only Kraken2 reports (except for hidden files)
+2. the path to a file containingg grouping information (see sample for formatting)
+3. taxids, separated by one space.
+
+
+```bash
+python report_vis.py <path_to_directory> -k  <path_to_groups> <taxids>
+```
+
+**example:**
+```bash
+python report_vis.py examples/Filtered_Kraken2_Reports -k examples/Sample_Groupings.txt 9606 10847
+```
+
+
+## Visualising SeqScreen Outputs 
+
+Taking in the path to a directory containing only SeqScreen outputs (except for hidden files), creates an interactive stacked bar chart. By default, it visualises taxa using taxonomic ranks assigned by SeqScreen.
+
+
+```bash
+python report_vis.py <path_to_directory> -s
+```
+
+Takes optional arguments (specifying taxonomic rank and email address), allowing user to specify the taxonomic rank of organisms in the report. Ranks in SeqScreen outputs can vary, but usually identify strains. This is a useful flag to use for visualisation on the species level.
+
+The specified string must be a valid string in the NCBI taxonomic database. Email address is required to use Entrez, which is used to fetch taxonomic information.
+
+**example:**
+```bash
+python report_vis.py examples/seqscreen_outputs -s <rank> <email_address>
+```
+
+```bash
+python report_vis.py examples/seqscreen_outputs -s species your@address.com
+```
+

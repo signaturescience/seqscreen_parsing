@@ -1,0 +1,33 @@
+ 95.05	2765	2765	U	0	unclassified
+  4.95	144	0	R	1	root
+  4.95	144	0	R1	131567	  cellular organisms
+  4.95	144	0	D	2759	    Eukaryota
+  4.95	144	0	D1	33154	      Opisthokonta
+  4.95	144	0	K	33208	        Metazoa
+  4.95	144	0	K1	6072	          Eumetazoa
+  4.95	144	0	K2	33213	            Bilateria
+  4.95	144	0	K3	33511	              Deuterostomia
+  4.95	144	0	P	7711	                Chordata
+  4.95	144	0	P1	89593	                  Craniata
+  4.95	144	0	P2	7742	                    Vertebrata
+  4.95	144	0	P3	7776	                      Gnathostomata
+  4.95	144	0	P4	117570	                        Teleostomi
+  4.95	144	0	P5	117571	                          Euteleostomi
+  4.95	144	0	P6	8287	                            Sarcopterygii
+  4.95	144	0	P7	1338369	                              Dipnotetrapodomorpha
+  4.95	144	0	P8	32523	                                Tetrapoda
+  4.95	144	0	P9	32524	                                  Amniota
+  4.95	144	0	C	40674	                                    Mammalia
+  4.95	144	0	C1	32525	                                      Theria
+  4.95	144	0	C2	9347	                                        Eutheria
+  4.95	144	0	C3	1437010	                                          Boreoeutheria
+  4.95	144	0	C4	314146	                                            Euarchontoglires
+  4.95	144	0	O	9443	                                              Primates
+  4.95	144	0	O1	376913	                                                Haplorrhini
+  4.95	144	0	O2	314293	                                                  Simiiformes
+  4.95	144	0	O3	9526	                                                    Catarrhini
+  4.95	144	0	O4	314295	                                                      Hominoidea
+  4.95	144	0	F	9604	                                                        Hominidae
+  4.95	144	0	F1	207598	                                                          Homininae
+  4.95	144	0	G	9605	                                                            Homo
+  4.95	144	144	S	9606	                                                              Homo sapiens
