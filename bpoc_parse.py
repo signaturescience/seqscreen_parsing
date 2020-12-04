@@ -25,9 +25,18 @@ def main():
     output_dir = "outputs/"
     if not os.path.exists(output_dir):
         os.makedirs(output_dir)
-
+    if not os.path.exists(args.input_file):
+        print("Input file not found: "+args.input_file)
+        parser.print_usage()
+        exit(1)
     # remove rows where there are no bpocs, create a revised file
-    dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
+    try:
+        dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
+    except:
+        print("error parsing file: "+args.input_file)
+        print("input file should be .tsv file")
+        parser.print_usage()
+        exit(1)
     seqscreen_parse_utils.bpoc_parse(dataframe, filename, output_dir)
     krona_input = os.path.join(output_dir, filename + "_revised.tsv")
     seqscreen_parse_utils.krona_plot(krona_input)
