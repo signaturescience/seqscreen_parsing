@@ -18,8 +18,10 @@ def krona_plot(inputfilename):
     dataframe = temp["multi_taxids_confidence"].str.split(",")
     dataframe = pd.concat([temp["query"], dataframe], 1)
     dataframe = dataframe.explode("multi_taxids_confidence")
+    if dataframe.empty:
+        return "No Entries"
     if dataframe is None:
-        return
+        return 1
     final = pd.concat([dataframe["query"], dataframe["multi_taxids_confidence"]
                        .str.split(":", expand=True)], 1)
 
@@ -29,12 +31,13 @@ def krona_plot(inputfilename):
     outfile.close()
 
     krona_outfile_name = f"{outfile_name}.html"
-    krona_outfile = open(krona_outfile_name, "w")
+#    krona_outfile = open(krona_outfile_name, "w")
     subprocess.Popen(
         f"ktImportTaxonomy -q 1 -t 2 -s 3 {outfile_name} -o {krona_outfile_name}",
         shell=True
         ).wait()
-    krona_outfile.close()
+#    krona_outfile.close()
+    return(0)
 
 def bpoc_parse(dataframe, filename, output_dir):
     """
@@ -105,6 +108,44 @@ def get_tied_taxids(multi_taxids_confidence):
 
     return taxids
 
+## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
+def parse_GO_terms(godag,dataframe, go_nums):
+    return_df = pd.DataFrame(columns=['GO_term','query_name','organism','associated_GO_terms'])
+    iter=0
+    for go in go_nums:
+        #    family_tree = [go, godag[go].get_all_children()]
+        family_tree = [go]
+        blah = []
+        for j in family_tree:
+            if type(j) == str:
+                blah.append(j)
+            else:
+                blah.extend(j)
+        family_tree = blah
+        for i, row in dataframe.iterrows():
+            input_go_terms = row['go'].split(";")
+            input_confidence = row['go_id_confidence'].split(";")
+            list = []
+            for j in range(0, (len(input_go_terms) - 1)):
+                term = input_go_terms[j]
+                confidence = input_confidence[j]
+                if term == go:
+                    # print('go term', go, 'found in', i, "as", input_go_terms)
+                    list.append(confidence)
+                #                break
+                elif term in godag.keys():
+                    if go in godag[term].get_all_parents():
+                        list.append(confidence)
+            if len(list) > 0:
+                iter += 1
+                return_df.loc[str(iter)] = pd.Series({'GO_term':go,'query_name':row['query'],'organism':row['organism'],'associated_GO_terms':list})
+                #print(go,row['query'])
+    return(return_df)
+
+def collapse_GO_results(dataframe):
+    return dataframe.groupby(['GO_term','organism'])['organism'].count()
+
+'''
 def go_term_parse(dataframe, go_num, filename, output_dir):
     """
     Creates a revised file with only lines with the go term specified
@@ -136,6 +177,7 @@ def go_term_parse(dataframe, go_num, filename, output_dir):
         f_out.write(f"{df_go_counts.to_string()} \n\n")
     f_out.close()
     return f_out
+'''
 
 pd.set_option('display.max_colwidth', 1000000)
 
@@ -313,3 +355,13 @@ def make_krona(infile):
     final.to_csv(tsvname, sep="\t", header=False, index=False)
     subprocess.run(["ktImportTaxonomy", "-q", "1", "-t", "2", "-s", "3",
                     tsvname, "-o", f"{input_prefix}krona.html"], check=True)
+
+
+def output_directory(directory_name):
+    if not os.path.exists(directory_name):
+        try:
+            os.mkdir(directory_name)
+        except:
+            print("could not create directory", directory_name)
+            return 1
+    return 0

@@ -14,13 +14,14 @@ USERNAME = "wwl3@rice.edu"
 
 # Change this to the files you want to run SeqScreen on
 files = [
-"SRR11059940_filtered_1_reads_trim25_seqscreen_report.tsv",
-"SRR11059941_filtered_1_reads_trim25_seqscreen_report.tsv",
-"SRR11059942_filtered_1_reads_trim25_seqscreen_report.tsv",
-"SRR11059943_filtered_1_reads_trim25_seqscreen_report.tsv",
-"SRR11059944_filtered_1_reads_trim25_1_seqscreen_report.tsv",
-"SRR11059945_filtered_1_reads_trim25_1_seqscreen_report.tsv",
-"SRR11059946_filtered_1_reads_trim25_1_seqscreen_report.tsv"]
+"examples/SRR11059940_filtered_1_reads_trim25_seqscreen_report.tsv"
+#    ,"SRR11059941_filtered_1_reads_trim25_seqscreen_report.tsv"
+#    ,"SRR11059942_filtered_1_reads_trim25_seqscreen_report.tsv"
+#    ,"SRR11059943_filtered_1_reads_trim25_seqscreen_report.tsv"
+#    ,"SRR11059944_filtered_1_reads_trim25_1_seqscreen_report.tsv"
+#    ,"SRR11059945_filtered_1_reads_trim25_1_seqscreen_report.tsv"
+#    ,"SRR11059946_filtered_1_reads_trim25_1_seqscreen_report.tsv"
+]
 
 go_nums = []
 
@@ -38,7 +39,7 @@ for f in files:
     subprocess.check_output("python reu2020_microbes/go_term_parse.py {} {}".format(
             fname,
             go_nums.join(" "),
-        shell=True)
+        shell=True))
 	#Upload back to OSF
     for go_num in go_nums:
         subprocess.check_output("osf -u {} -p 7nrd3 upload {} {}".format(
