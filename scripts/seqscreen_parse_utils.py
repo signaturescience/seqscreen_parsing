@@ -110,7 +110,7 @@ def get_tied_taxids(multi_taxids_confidence):
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag,dataframe, go_nums):
-    return_df = pd.DataFrame(columns=['GO_term','query','organism','associated_GO_terms','taxid'])
+    return_df = pd.DataFrame(columns=['GO_term','query','organism','associated_GO_terms','taxid', 'gene_name', 'uniprot', 'uniprot evalue'])
     iter=0
     for go in go_nums:
         #    family_tree = [go, godag[go].get_all_children()]
@@ -138,7 +138,7 @@ def parse_GO_terms(godag,dataframe, go_nums):
                         list.append(confidence)
             if len(list) > 0:
                 iter += 1
-                return_df.loc[str(iter)] = pd.Series({'GO_term':go,'query':row['query'],'organism':row['organism'],'associated_GO_terms':list,'taxid':row['taxid']})
+                return_df.loc[str(iter)] = pd.Series({'GO_term':go,'query':row['query'],'organism':row['organism'],'associated_GO_terms':list,'taxid':row['taxid'], 'gene_name':row['gene_name'],'uniprot':row['uniprot'],'uniprot evalue':row['uniprot evalue']})
                 #print(go,row['query'])
     return(return_df)
 

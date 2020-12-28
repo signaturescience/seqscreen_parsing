@@ -32,9 +32,16 @@ def main():
 #    parser.add_argument("go_numbers", type=list, nargs="?", help="input go numbers separated by spaces")
     parser.add_argument("-g", "--go_file", required=False, type=str, help="File containing GO terms to be parsed")
     parser.add_argument("-G", "--go_terms", required=False, type=str, action='append', help="Add individual GO terms can be repeated multiple times (e.g. -G GO:000112 -G GO:000013" )
-    parser.add_argument("--prefix", "-p", type=str, help="prefix for output files")
+    parser.add_argument("--prefix", "-p", type=str, help="prefix for output files, default is seqscreen_GO", default="seqscreen_GO")
     parser.add_argument("--out","-o", type=str, required=False, help="output directory, default = output", default="output")
+    parser.add_argument("--force", help="Force run if files exist", action='store_true')
     args = parser.parse_args()
+    if not args.force:
+        check_file = "".join((args.out,"/",args.prefix,".full_report.csv"))
+        print(check_file)
+        if os.path.exists(check_file):
+            print("file: ",args.out,args.prefix,".full_report.csv"+" exists, use --force/-f to force overwrite", sep="")
+            exit(1)
     filename = pathlib.PurePath(args.input_file).stem
     #check for output directory, create if not exists
     output_dir = args.out
