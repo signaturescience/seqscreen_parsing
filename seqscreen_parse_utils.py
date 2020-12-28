@@ -110,7 +110,7 @@ def get_tied_taxids(multi_taxids_confidence):
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag,dataframe, go_nums):
-    return_df = pd.DataFrame(columns=['GO_term','query_name','organism','associated_GO_terms'])
+    return_df = pd.DataFrame(columns=['GO_term','query','organism','associated_GO_terms','taxid'])
     iter=0
     for go in go_nums:
         #    family_tree = [go, godag[go].get_all_children()]
@@ -138,12 +138,12 @@ def parse_GO_terms(godag,dataframe, go_nums):
                         list.append(confidence)
             if len(list) > 0:
                 iter += 1
-                return_df.loc[str(iter)] = pd.Series({'GO_term':go,'query_name':row['query'],'organism':row['organism'],'associated_GO_terms':list})
+                return_df.loc[str(iter)] = pd.Series({'GO_term':go,'query':row['query'],'organism':row['organism'],'associated_GO_terms':list,'taxid':row['taxid']})
                 #print(go,row['query'])
     return(return_df)
 
 def collapse_GO_results(dataframe):
-    return dataframe.groupby(['GO_term','organism'])['organism'].count()
+    return dataframe.groupby(['GO_term','taxid'])['taxid'].count()
 
 '''
 def go_term_parse(dataframe, go_num, filename, output_dir):
@@ -278,7 +278,7 @@ def sort_tied(cell, thresh):
         that row.
 
     """
-    #removes all taxids of equally high confidence from a cell
+        #removes all taxids of equally high confidence from a cell
     if not isinstance(cell, str):
         cell = cell.to_string()
         cell = cell.split("confidence")[1]
