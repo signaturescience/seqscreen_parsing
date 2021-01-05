@@ -9,7 +9,7 @@ import argparse
 import os
 import pathlib
 import pandas as pd
-import seqscreen_parse_utils as seqscreen
+import seqscreen_parse_utils
 import sys
 
 
@@ -20,12 +20,10 @@ def main():
     """
     #Command line Arguments (input file):
     parser = argparse.ArgumentParser()
-    parser.add_argument("input_file", type=str, help="Input a .tsv file")
-    parser.add_argument("--prefix","-p", type=str, required=False, default='BPOC', help="Prefix for all output files (default=BPOC)")
-    parser.add_argument("--outdir","-o", type=str, required=False, default="output", help="Output directory (Default=output")
+    parser.add_argument("input_file", type=str, help="input a .tsv file")
     args = parser.parse_args()
     filename = pathlib.PurePath(args.input_file).stem
-    output_dir = args.outdir
+    output_dir = "outputs/"
 
    #check for output_dir, create if not exists
     if not os.path.exists(output_dir):
@@ -51,7 +49,7 @@ def main():
         exit(1)
 
     #call bpoc_parse (I don't like the way this works)
-    seqscreen.bpoc_parse(dataframe, filename, output_dir)
+    seqscreen_parse_utils.bpoc_parse(dataframe, filename, output_dir)
     krona_input = os.path.join(output_dir, filename + "_revised.tsv")
     #run krona_plot using revised.tsv file that is created in bpoc_parse (again, no bueno)
     seqscreen_parse_utils.krona_plot(krona_input)

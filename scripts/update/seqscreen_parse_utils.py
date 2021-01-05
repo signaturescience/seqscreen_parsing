@@ -9,20 +9,12 @@ import os
 import subprocess
 import pandas as pd
 
-
-#why is this here?
-pd.set_option('display.max_colwidth', 1000000)
-
-table_elements = ["query","taxid", "organism", "gene_name", "uniprot", "uniprot evalue"]
-bpocs = ["adhesion", "secretion", "host_cell_death",
-         "antibiotic", "invasion", "evasion",
-         "cytotoxicity", "degrade_ecm", "disable_organ"]
-
 def krona_from_slice(slice,file_root, name='GO_term'):
     """"
     takes in pandas dataframe slice,  and file prefix and writes out ktImportTaxonomy
     """
     input_data = slice.to_csv(header=False, sep="\t")
+    print(input_data.encode('utf_8'))
     subprocess.run(["ktImportTaxonomy", "-n", name, "-q", "1", "-t", "2", "-s", "3", "-", "-o", file_root + ".html"],
                    check=True, input=input_data.encode('utf_8'))
 
@@ -56,27 +48,23 @@ def krona_plot(inputfilename):
 #    krona_outfile.close()
     return(0)
 
-def remove_blanks_from_dataframe(dataframe,column, blank_pattern = '-'):
-    """
-
-    All rows that are non dash, aka have a GO term assigned
-    filter based on column name in function
-    if blank pattern is not '-', then must be specified in function call
-    """
-    idx = dataframe[dataframe[column] == blank_pattern].index
-    df_valid = dataframe.drop(idx)
-    valid_rows = len(df_valid.index)
-    return(df_valid, valid_rows)
-
 def bpoc_parse(dataframe, filename, output_dir):
     """
     Creates a revised file with only bpoc lines and
     a summary file with analysis of bpocs
     """
-    elems = table_elements
+    bpocs = ["adhesion", "secretion", "host_cell_death",
+             "antibiotic", "invasion", "evasion",
+             "cytotoxicity", "degrade_ecm", "disable_organ"]
+
+    elems = ["taxid", "organism", "gene_name", "uniprot", "uniprot evalue"]
 
     total_rows = len(dataframe.index)
-    (df_valid, valid_rows) = remove_blanks_from_dataframe(dataframe, 'go')
+
+    # All rows that are non dash, aka have a GO term assigned
+    idx = dataframe[dataframe['go'] == '-'].index
+    df_valid = dataframe.drop(idx)
+    valid_rows = len(df_valid.index)
 
     # All rows that have at least one BPoC
     df_bpocs = dataframe[dataframe[bpocs].replace('-', 0).astype(int).sum(1) > 0]
@@ -112,59 +100,95 @@ def bpoc_parse(dataframe, filename, output_dir):
                                       index=bpoc_elems.columns).apply(lambda x: ', '.join(set(x)))
             #ideally this would not be a for loop,
             #but dislike formatting for elems_in_bpoc.to_string()
-            records = elems_in_bpoc.csv()
-            f_out.write(records)
-            #for index, value in elems_in_bpoc.items():
-            #    f_out.write(f"{index}: {value} \n")
+            for index, value in elems_in_bpoc.items():
+                f_out.write(f"{index}: {value} \n")
 
     f_out.close()
+
+def get_tied_taxids(multi_taxids_confidence):
+    """
+    For each multi_taxid_confidence cell, gets a list of the top taxids
+    that have tied confidence levels
+    """
+    taxids = []
+    data = multi_taxids_confidence.split(",")
+    maximum = max(float(cell.split(':')[1]) for cell in data)
+    taxids = [cell.split(':')[0] for cell in data if float(cell.split(':')[1]) == maximum]
+
+    return taxids
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag,dataframe, go_nums):
     return_df = pd.DataFrame(columns=['GO_term','query','organism','associated_GO_terms','taxid', 'gene_name', 'uniprot', 'uniprot evalue'])
     iter=0
-    """
-    This structure is horribly inefficient.  Needs to be refactored to do the following:
-    generate expanded dataframe of ALL queries and ALL GO terms
-    Filter to only include those rows that contain GO term
-    check query/GO combo for any GO term children, place in associated_GO_terms
-    """
-    rows_raw=len(dataframe.index)
-    (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
-    print(num_rows, "of", rows_raw, "with annotated GO terms kept")
-    dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
-    expanded_dataframe = dataframe.explode('go_id_confidence')
-    expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*","")
     for go in go_nums:
-        print(go)
-        slice = expanded_dataframe.loc[expanded_dataframe['go'] == go]
-        if len(slice.index) > 0:
-            query_list = []
-            queries = list(set(slice['query']))
-            string_iter = 0
-            for query in queries:
-                string_iter += 1
-                if string_iter % 1000 == 0:
-                    print(string_iter,"/",len(queries))
-                row = dataframe.loc[dataframe['query'] == query]
-                for sub_go in row['go']:
-                    #print (query, sub_go)
-                    if go == sub_go:
-                        query_list.append(go)
-                    #    continue
-                    elif sub_go in godag.keys():
-                        if go in godag[sub_go].get_all_parents():
-                            query_list.append(sub_go)
-                dicer = pd.Series({'GO_term': go, 'query': row['query'], 'organism': row['organism'], 'associated_GO_terms': query_list, 'taxid': row['taxid'], 'gene_name': row['gene_name'], 'uniprot': row['uniprot'], 'uniprot evalue': row['uniprot evalue']})
-                return_df[str(string_iter)] = dicer
-        print(iter,"/", iter, ":", go, "Complete")
+        #    family_tree = [go, godag[go].get_all_children()]
+        family_tree = [go]
+        blah = []
+        for j in family_tree:
+            if type(j) == str:
+                blah.append(j)
+            else:
+                blah.extend(j)
+        family_tree = blah
+        for i, row in dataframe.iterrows():
+            input_go_terms = row['go'].split(";")
+            input_confidence = row['go_id_confidence'].split(";")
+            list = []
+            for j in range(0, (len(input_go_terms) - 1)):
+                term = input_go_terms[j]
+                confidence = input_confidence[j]
+                if term == go:
+                    # print('go term', go, 'found in', i, "as", input_go_terms)
+                    list.append(confidence)
+                #                break
+                elif term in godag.keys():
+                    if go in godag[term].get_all_parents():
+                        list.append(confidence)
+            if len(list) > 0:
+                iter += 1
+                return_df.loc[str(iter)] = pd.Series({'GO_term':go,'query':row['query'],'organism':row['organism'],'associated_GO_terms':list,'taxid':row['taxid'], 'gene_name':row['gene_name'],'uniprot':row['uniprot'],'uniprot evalue':row['uniprot evalue']})
+                #print(go,row['query'])
     return(return_df)
-
 
 def collapse_GO_results(dataframe):
     return dataframe.groupby(['GO_term','taxid'])['taxid'].count()
 
+'''
+def go_term_parse(dataframe, go_num, filename, output_dir):
+    """
+    Creates a revised file with only lines with the go term specified
+    and a summary file with analysis of that go term
+    """
 
+    columns = ["multi_taxids_confidence", "organism", "gene_name", "uniprot"]
+
+    # create a new .tsv file with just rows with that go number
+    df_go = dataframe[dataframe["go"].apply(lambda x: go_num in x)]
+    df_go.to_csv(os.path.join(output_dir, filename + f"_go_num_{go_num}_revised.tsv"),
+                 sep='\t', index=False)
+
+    # create a text file  of summary statistics for that go number
+    f_out = open(os.path.join(output_dir, filename + f"_{go_num}_summary.txt"), "w")
+    f_out.write(f"Information associated with go term {go_num} for sample: {filename}")
+    f_out.write("\n\n")
+    f_out.write(f"Percentage of rows with go term {go_num} in ")
+    f_out.write(f"sample: {len(df_go.index)/len(dataframe.index)}")
+    f_out.write("\n\n")
+
+    # summarize the proteins and organisms
+    for col in columns:
+        if col == "multi_taxids_confidence":
+            df_go_counts = df_go[col].apply(get_tied_taxids).explode().value_counts()
+        else:
+            df_go_counts = df_go.groupby(col).count().loc[:, "query"].sort_values(ascending=False)
+        f_out.write(f"{col} \n")
+        f_out.write(f"{df_go_counts.to_string()} \n\n")
+    f_out.close()
+    return f_out
+'''
+
+pd.set_option('display.max_colwidth', 1000000)
 
 def count_taxids(dframe, destname):
     """
@@ -342,7 +366,7 @@ def make_krona(infile):
                     tsvname, "-o", f"{input_prefix}krona.html"], check=True)
 
 
-def create_output_directory(directory_name):
+def output_directory(directory_name):
     if not os.path.exists(directory_name):
         try:
             os.mkdir(directory_name)
