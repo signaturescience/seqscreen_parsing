@@ -3,3 +3,4 @@
 ._.gitlab-ci.yml
 *.pyc
 outputs/
+output/
