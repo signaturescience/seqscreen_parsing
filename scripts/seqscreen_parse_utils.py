@@ -171,7 +171,6 @@ def parse_GO_terms(godag, dataframe, go_nums):
                                              'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
         print(string_iter, "/", string_iter, ":", go, "Complete")
     return_df.to_csv("test.csv")
-
     return (return_df)
 
 
