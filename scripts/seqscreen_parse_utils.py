@@ -8,6 +8,7 @@ import copy
 import os
 import subprocess
 import pandas as pd
+import numpy as np
 
 
 #why is this here?
@@ -120,45 +121,58 @@ def bpoc_parse(dataframe, filename, output_dir):
     f_out.close()
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
-def parse_GO_terms(godag,dataframe, go_nums):
-    return_df = pd.DataFrame(columns=['GO_term','query','organism','associated_GO_terms','taxid', 'gene_name', 'uniprot', 'uniprot evalue'])
-    iter=0
+def parse_GO_terms(godag, dataframe, go_nums):
+    return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms',
+                                      'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
+    iter = 0
     """
     This structure is horribly inefficient.  Needs to be refactored to do the following:
     generate expanded dataframe of ALL queries and ALL GO terms
     Filter to only include those rows that contain GO term
     check query/GO combo for any GO term children, place in associated_GO_terms
     """
-    rows_raw=len(dataframe.index)
+    rows_raw = len(dataframe.index)
+    dataframe2 = dataframe
     (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
     print(num_rows, "of", rows_raw, "with annotated GO terms kept")
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
     expanded_dataframe = dataframe.explode('go_id_confidence')
-    expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*","")
+    expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "")
+    godag_keys = godag.keys()
+    total_iter = 0
     for go in go_nums:
         print(go)
+        string_iter = 0
         slice = expanded_dataframe.loc[expanded_dataframe['go'] == go]
+        go_family = [go]
+        if go in godag_keys:
+            for value in list(godag[go].get_all_children()):
+                go_family.append(value)
+        # slice2 = expanded_dataframe.loc[expanded_dataframe['go'].isin(go_family)]
         if len(slice.index) > 0:
-            query_list = []
+            print("0", "/", len(slice.index))
             queries = list(set(slice['query']))
             string_iter = 0
             for query in queries:
+                total_iter += 1
                 string_iter += 1
                 if string_iter % 1000 == 0:
-                    print(string_iter,"/",len(queries))
-                row = dataframe.loc[dataframe['query'] == query]
-                for sub_go in row['go']:
-                    #print (query, sub_go)
-                    if go == sub_go:
-                        query_list.append(go)
-                    #    continue
-                    elif sub_go in godag.keys():
-                        if go in godag[sub_go].get_all_parents():
-                            query_list.append(sub_go)
-                dicer = pd.Series({'GO_term': go, 'query': row['query'], 'organism': row['organism'], 'associated_GO_terms': query_list, 'taxid': row['taxid'], 'gene_name': row['gene_name'], 'uniprot': row['uniprot'], 'uniprot evalue': row['uniprot evalue']})
-                return_df[str(string_iter)] = dicer
-        print(iter,"/", iter, ":", go, "Complete")
-    return(return_df)
+                    print(string_iter, "/", len(queries))
+                slice2 = dataframe2.loc[dataframe2['query'] == query]
+#                query_list = expanded_dataframe.loc[expanded_dataframe['query'] == query, 'go_id_confidence']
+#                query_list = np.intersect1d(query_list, go_family)
+                fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
+                query_list=np.intersect1d(fl,go_family)
+                idx = slice2.index[0]
+                return_df.loc[total_iter] = {'GO_term': go, 'query': slice2['query'][idx],
+                                             'organism': slice2['organism'][idx],
+                                             'associated_GO_terms': ";".join(query_list), 'taxid': slice2['taxid'][idx],
+                                             'gene_name': slice2['gene_name'][idx], 'uniprot': slice2['uniprot'][idx],
+                                             'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+        print(string_iter, "/", string_iter, ":", go, "Complete")
+    return_df.to_csv("test.csv")
+
+    return (return_df)
 
 
 def collapse_GO_results(dataframe):
