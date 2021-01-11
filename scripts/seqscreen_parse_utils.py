@@ -137,7 +137,7 @@ def parse_GO_terms(godag, dataframe, go_nums):
     print(num_rows, "of", rows_raw, "with annotated GO terms kept")
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
     expanded_dataframe = dataframe.explode('go_id_confidence')
-    expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "")
+    expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
     godag_keys = godag.keys()
     total_iter = 0
     for go in go_nums:
