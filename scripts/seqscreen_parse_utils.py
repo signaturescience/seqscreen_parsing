@@ -122,7 +122,7 @@ def bpoc_parse(dataframe, filename, output_dir):
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag, dataframe, go_nums):
-    return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms',
+    return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
                                       'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
     iter = 0
     """
@@ -136,6 +136,7 @@ def parse_GO_terms(godag, dataframe, go_nums):
     (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
     print(num_rows, "of", rows_raw, "with annotated GO terms kept")
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
+    temp_taxID = dataframe['multi_taxids_confidence'].str.split(';')
     expanded_dataframe = dataframe.explode('go_id_confidence')
     expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
     godag_keys = godag.keys()
@@ -164,9 +165,9 @@ def parse_GO_terms(godag, dataframe, go_nums):
                 fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
                 query_list=np.intersect1d(fl,go_family)
                 idx = slice2.index[0]
-                return_df.loc[total_iter] = {'GO_term': go, 'query': slice2['query'][idx],
+                return_df.loc[total_iter] = {'GO_term': go, 'query': query,
                                              'organism': slice2['organism'][idx],
-                                             'associated_GO_terms': ";".join(query_list), 'taxid': slice2['taxid'][idx],
+                                             'associated_GO_terms': ";".join(query_list), 'multi_taxids_confidence': slice2['multi_taxids_confidence'], 'taxid': slice2['taxid'][idx],
                                              'gene_name': slice2['gene_name'][idx], 'uniprot': slice2['uniprot'][idx],
                                              'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
         print(string_iter, "/", string_iter, ":", go, "Complete")

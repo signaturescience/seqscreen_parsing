@@ -12,7 +12,6 @@ import argparse
 import os
 import pathlib
 import pandas as pd
-import seqscreen_parse_utils as seqscreen
 import argparse
 import sys
 import pathlib
@@ -71,7 +70,7 @@ def main():
     godag = GODag("go-basic.obo", optional_attrs={'relationship'})
     #parsed_dataframe = seqscreen.parse_GO_terms(godag,dataframe,go_nums)
     # FOR TROUBLESHOOTING
-#    parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
+    #parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
     parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
     grouped_list = seqscreen.collapse_GO_results(parsed_dataframe)
     grouped_list.to_csv("{OUT}/{PRE}.grouped.csv".format(PRE=args.prefix, OUT=args.out))
@@ -91,28 +90,6 @@ def main():
 
 
 
-        ## get associated_go_terms
-"""
-        for query in slice['query']:
-            string_iter += 1
-            if string_iter % 1000 == 0:
-                print(string_iter)
-            list=[]
-            #this is ugly, fix it later
-            input_list =  dataframe.loc[dataframe['query'] == query]['go_id_confidence'].to_list()[0]
-            row = dataframe.loc[dataframe['query'] == query]
-            child_list = godag[go].get_all_children()
-            if any(item in child_list in item in input_list):
-                for sub_go in input_list:
-                    sub_go_id = re.sub("\[.*","", sub_go)
-                    if go == sub_go_id:
-                        list.append(sub_go)
-                    elif go in godag[sub_go_id].get_all_parents():
-                        list.append(sub_go)
-                dicer = pd.Series({'GO_term': go, 'query': row['query'], 'organism': row['organism'], 'associated_GO_terms': list, 'taxid': row['taxid'], 'gene_name': row['gene_name'], 'uniprot': row['uniprot'], 'uniprot evalue': row['uniprot evalue']})
-                return_df[str(string_iter)] = dicer
-"""
-#    return(return_df)
 
 if __name__ == "__main__":
     # execute only if run as a script
