@@ -72,8 +72,10 @@ def main():
     # FOR TROUBLESHOOTING
     #parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
     parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
-    grouped_list = seqscreen.collapse_GO_results(parsed_dataframe)
+    grouped_list = seqscreen.collapse_GO_results(parsed_dataframe,['GO_term','taxid'], 'taxid')
+    taxID_list = seqscreen.collapse_GO_results(parsed_dataframe, ['taxid'], 'taxid')
     grouped_list.to_csv("{OUT}/{PRE}.grouped.csv".format(PRE=args.prefix, OUT=args.out))
+    taxID_list.to_csv("{OUT}/{PRE}.taxids.csv".format(PRE=args.prefix, OUT=args.out))
     parsed_dataframe.to_csv("{OUT}/{PRE}.full_report.csv".format(PRE=args.prefix, OUT=args.out))
     # iterate through GO_Terms to make krona plot for each:
     #krona_format=['query','taxid']

@@ -175,8 +175,8 @@ def parse_GO_terms(godag, dataframe, go_nums):
     return (return_df)
 
 
-def collapse_GO_results(dataframe):
-    return dataframe.groupby(['GO_term','taxid'])['taxid'].count()
+def collapse_GO_results(dataframe, group_by, count):
+    return dataframe.groupby(group_by)[count].count()
 
 
 
