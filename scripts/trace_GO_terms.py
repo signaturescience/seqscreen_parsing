@@ -18,6 +18,7 @@ import pathlib
 import pandas as pd
 import seqscreen_parse_utils as seqscreen
 import re
+import numpy as np
 import subprocess
 
 def main():
@@ -28,7 +29,7 @@ def main():
     # parse the inputted .tsv file
     parser = argparse.ArgumentParser()
     parser.add_argument("input_file", type=str, help="input a .tsv file")
-#    parser.add_argument("go_numbers", type=list, nargs="?", help="input go numbers separated by spaces")
+    #    parser.add_argument("go_numbers", type=list, nargs="?", help="input go numbers separated by spaces")
     parser.add_argument("-g", "--go_file", required=False, type=str, help="File containing GO terms to be parsed")
     parser.add_argument("-G", "--go_terms", required=False, type=str, action='append', help="Add individual GO terms can be repeated multiple times (e.g. -G GO:000112 -G GO:000013" )
     parser.add_argument("--prefix", "-p", type=str, help="prefix for output files, default is seqscreen_GO", default="seqscreen_GO")
@@ -52,11 +53,10 @@ def main():
     if args.go_terms is not None:
         for go_term in args.go_terms:
             go_nums.append(go_term)
-    if args.go_file is not None:
-        if os.path.exists(args.go_file):
-            with open(args.go_file, 'r') as go_reader:
-                for line in go_reader:
-                    go_nums.append(line.strip())
+    if args.go_file is not None and os.path.exists(args.go_file):
+        with open(args.go_file, 'r') as go_reader:
+            for line in go_reader:
+                go_nums.append(line.strip())
     if args.quiet:
         f=open(os.devnull, "w")
         sys.stdout = f
@@ -70,8 +70,9 @@ def main():
     godag = GODag("go-basic.obo", optional_attrs={'relationship'})
     #parsed_dataframe = seqscreen.parse_GO_terms(godag,dataframe,go_nums)
     # FOR TROUBLESHOOTING
-    #parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
-    parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
+#parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
+    #parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
+    parsed_dataframe = numpy_parse_GO_terms(godag, dataframe, go_nums)
     grouped_list = seqscreen.collapse_GO_results(parsed_dataframe,['GO_term','taxid'], 'taxid')
     taxID_list = seqscreen.collapse_GO_results(parsed_dataframe, ['taxid'], 'taxid')
     uniprot_list = seqscreen.collapse_GO_results(parsed_dataframe,['uniprot'], 'uniprot')
@@ -83,14 +84,14 @@ def main():
     #krona_format=['query','taxid']
     if args.krona:
         for go in go_nums:
-            slice=parsed_dataframe.loc[parsed_dataframe['GO_term'] == go]
+            sliced=parsed_dataframe.loc[parsed_dataframe['GO_term'] == go]
             name = godag[go].name
             name = re.sub('\W+',"_",name)
-            if len(slice) > 0:
-                slice = slice.groupby(['query','taxid'])[['taxid']].count()
+            if len(sliced) > 0:
+                sliced = sliced.groupby(['query','taxid'])[['taxid']].count()
                 go_filename = go.replace(":","-")
                 file_root = "{OUT}/{PRE}.{GO}.{NAME}.krona".format(NAME=name, PRE=args.prefix, GO=go_filename, OUT=args.out)
-                seqscreen.krona_from_slice(slice,file_root, name)
+                seqscreen.krona_from_slice(sliced,file_root, name)
 
 
 
@@ -98,3 +99,55 @@ def main():
 if __name__ == "__main__":
     # execute only if run as a script
     sys.exit(main())
+def numpy_parse_GO_terms(godag, dataframe, go_nums):
+    return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
+                                      'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
+    """
+    This structure is horribly inefficient.  Needs to be refactored to do the following:
+    generate expanded dataframe of ALL queries and ALL GO terms
+    Filter to only include those rows that contain GO term
+    check query/GO combo for any GO term children, place in associated_GO_terms
+    """
+    rows_raw = len(dataframe.index)
+    dataframe2 = dataframe
+    (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
+    print(num_rows, "of", rows_raw, "with annotated GO terms kept")
+    dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
+    expanded_dataframe = dataframe.explode('go_id_confidence')
+    expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
+    godag_keys = godag.keys()
+    total_iter = 0
+    go_rows = np.array(expanded_dataframe['go'])
+    for go in go_nums:
+        print(go)
+        string_iter = 0
+        #slice_go = expanded_dataframe.loc[expanded_dataframe['go'] == go]
+        slice_go = numpy.flatnonzero(go_rows == go)
+        go_family = [go]
+        if go in godag_keys:
+            for value in list(godag[go].get_all_children()):
+                go_family.append(value)
+        if len(slice_go.index) > 0:
+            print("0", "/", len(slice_go.index))
+            queries = list(set(slice_go['query']))
+            string_iter = 0
+            for query in queries:
+                total_iter += 1
+                string_iter += 1
+                if string_iter % 1000 == 0:
+                    print(string_iter, "/", len(queries))
+                slice2 = dataframe2.loc[dataframe2['query'] == query]
+                fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
+                query_list=np.intersect1d(fl,go_family)
+                idx = slice2.index[0]
+                return_df.loc[total_iter] = {'GO_term': go, 'query': query,
+                                             'organism': slice2['organism'][idx],
+                                             'associated_GO_terms': ";".join(query_list),
+                                             'multi_taxids_confidence': slice2['multi_taxids_confidence'],
+                                             'taxid': slice2['taxid'][idx],
+                                             'gene_name': slice2['gene_name'][idx],
+                                             'uniprot': slice2['uniprot'][idx],
+                                             'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+        print(string_iter, "/", string_iter, ":", go, "Complete")
+    return_df.to_csv("test.csv")
+    return (return_df)
