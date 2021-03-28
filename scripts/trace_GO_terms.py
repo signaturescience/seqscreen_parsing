@@ -20,6 +20,7 @@ import seqscreen_parse_utils as seqscreen
 import re
 import numpy as np
 import subprocess
+import timeit
 
 def main():
     """
@@ -71,8 +72,8 @@ def main():
     #parsed_dataframe = seqscreen.parse_GO_terms(godag,dataframe,go_nums)
     # FOR TROUBLESHOOTING
 #parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
-    #parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
-    parsed_dataframe = numpy_parse_GO_terms(godag, dataframe, go_nums)
+    parsed_dataframe = seqscreen.parse_GO_terms(godag, dataframe, go_nums)
+    #parsed_dataframe = numpy_parse_GO_terms(godag, dataframe, go_nums)
     grouped_list = seqscreen.collapse_GO_results(parsed_dataframe,['GO_term','taxid'], 'taxid')
     taxID_list = seqscreen.collapse_GO_results(parsed_dataframe, ['taxid'], 'taxid')
     uniprot_list = seqscreen.collapse_GO_results(parsed_dataframe,['uniprot'], 'uniprot')
@@ -96,9 +97,7 @@ def main():
 
 
 
-if __name__ == "__main__":
-    # execute only if run as a script
-    sys.exit(main())
+
 def numpy_parse_GO_terms(godag, dataframe, go_nums):
     return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
                                       'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
@@ -110,19 +109,23 @@ def numpy_parse_GO_terms(godag, dataframe, go_nums):
     """
     rows_raw = len(dataframe.index)
     dataframe2 = dataframe
-    (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
+    (dataframe, num_rows) = seqscreen.remove_blanks_from_dataframe(dataframe, 'go')
     print(num_rows, "of", rows_raw, "with annotated GO terms kept")
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
     expanded_dataframe = dataframe.explode('go_id_confidence')
     expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
     godag_keys = godag.keys()
     total_iter = 0
-    go_rows = np.array(expanded_dataframe['go'])
+    go_rows = np.asanyarray(expanded_dataframe['go'])
     for go in go_nums:
         print(go)
         string_iter = 0
         #slice_go = expanded_dataframe.loc[expanded_dataframe['go'] == go]
-        slice_go = numpy.flatnonzero(go_rows == go)
+        funny = list(np.flatnonzero(go_rows == go))
+        print(len(go_rows))
+        print(max(funny))
+        print(len(expanded_dataframe['go']))
+        slice_go = expanded_dataframe.iloc[funny]
         go_family = [go]
         if go in godag_keys:
             for value in list(godag[go].get_all_children()):
@@ -131,13 +134,20 @@ def numpy_parse_GO_terms(godag, dataframe, go_nums):
             print("0", "/", len(slice_go.index))
             queries = list(set(slice_go['query']))
             string_iter = 0
+            orig_slice = np.asanyarray(dataframe2['query'])
+            df2_index = np.in1d(orig_slice, queries)
+            orig_slice = np.asanyarray(dataframe['query'])    
+            df_index = np.intersect1d(orig_slice, queries)
+            df2_subset = dataframe2.iloc[df2_index]
+            orig_slice = np.asanyarray(expanded_dataframe['query'])
+            edf_slice = np.intersect1d(orig_slice, queries)
+            edf_subset = expanded_dataframe.iloc[edf_slice]
             for query in queries:
                 total_iter += 1
                 string_iter += 1
                 if string_iter % 1000 == 0:
                     print(string_iter, "/", len(queries))
-                slice2 = dataframe2.loc[dataframe2['query'] == query]
-                fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
+                fl = edf_subset['go']['query' == query and 'go' in go_family]
                 query_list=np.intersect1d(fl,go_family)
                 idx = slice2.index[0]
                 return_df.loc[total_iter] = {'GO_term': go, 'query': query,
@@ -151,3 +161,10 @@ def numpy_parse_GO_terms(godag, dataframe, go_nums):
         print(string_iter, "/", string_iter, ":", go, "Complete")
     return_df.to_csv("test.csv")
     return (return_df)
+
+
+
+if __name__ == "__main__":
+    # execute only if run as a script
+    sys.exit(main())
+
