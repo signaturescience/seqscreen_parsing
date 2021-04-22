@@ -168,7 +168,7 @@ def parse_GO_terms(godag, dataframe, go_nums):
 
                 idx = slice2.index[0]
                 start_time = time.time()
-                temp_dataframe = { 'GO_term': go, 'query': query,
+                return_df.loc[total_iter] = {'GO_term': go, 'query': query,
                                              'organism': slice2['organism'][idx],
                                              'associated_GO_terms': ";".join(query_list),
                                              'multi_taxids_confidence': slice2['multi_taxids_confidence'],
@@ -176,9 +176,6 @@ def parse_GO_terms(godag, dataframe, go_nums):
                                              'gene_name': slice2['gene_name'][idx],
                                              'uniprot': slice2['uniprot'][idx],
                                              'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
-
-                start_time = time.time()
-                return_df.append(temp_dataframe, ignore_index = True)
 
         print(string_iter, "/", string_iter, ":", go, "Complete")
     return_df.to_csv("test.csv")
