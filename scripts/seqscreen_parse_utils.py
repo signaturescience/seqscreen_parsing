@@ -9,6 +9,7 @@ import os
 import subprocess
 import pandas as pd
 import numpy as np
+import utils
 
 
 #why is this here?
@@ -126,6 +127,9 @@ def parse_GO_terms(godag, dataframe, go_nums):
     Filter to only include those rows that contain GO term
     check query/GO combo for any GO term children, place in associated_GO_terms
     """
+    import time
+    start_time = time.time()
+
     rows_raw = len(dataframe.index)
     dataframe2 = dataframe
     (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
@@ -133,16 +137,19 @@ def parse_GO_terms(godag, dataframe, go_nums):
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
     expanded_dataframe = dataframe.explode('go_id_confidence')
     expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
-    godag_keys = godag.keys()
     total_iter = 0
+    
+    hashed_query_dict = utils.hash_df(dataframe2, 'query')
+    
     for go in go_nums:
         print(go)
         string_iter = 0
         slice_go = expanded_dataframe.loc[expanded_dataframe['go'] == go]
         go_family = [go]
-        if go in godag_keys:
-            for value in list(godag[go].get_all_children()):
-                go_family.append(value)
+        if go in godag:
+            # list concatenation 
+            go_family = go_family + list(godag[go].get_all_children())
+        
         if len(slice_go.index) > 0:
             print("0", "/", len(slice_go.index))
             queries = list(set(slice_go['query']))
@@ -152,11 +159,27 @@ def parse_GO_terms(godag, dataframe, go_nums):
                 string_iter += 1
                 if string_iter % 1000 == 0:
                     print(string_iter, "/", len(queries))
-                slice2 = dataframe2.loc[dataframe2['query'] == query]
+                
+                start_time = time.time()
+                # leverage memory to check for already queried entries
+                # if query not in query_dict:
+                #     query_dict[query] = dataframe2.loc[dataframe2['query'] == query]
+                #     query_dict[query] = dataframe2.iloc[dataframe2.index[dataframe2['query'] == query].tolist()]
+                # slice2 = query_dict[query]
+                slice2 = dataframe2.iloc[hashed_query_dict[query]]
+                if string_iter % 1000 == 0:
+                    print("query --- %s seconds ---" % (time.time() - start_time))
+                # print("query --- %s seconds ---" % (time.time() - start_time))
+                start_time = time.time()
+                
                 fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
                 query_list=np.intersect1d(fl,go_family)
+
+                # print("intercept --- %s seconds ---" % (time.time() - start_time))
+
                 idx = slice2.index[0]
-                return_df.loc[total_iter] = {'GO_term': go, 'query': query,
+                start_time = time.time()
+                temp_dataframe = { 'GO_term': go, 'query': query,
                                              'organism': slice2['organism'][idx],
                                              'associated_GO_terms': ";".join(query_list),
                                              'multi_taxids_confidence': slice2['multi_taxids_confidence'],
@@ -164,7 +187,13 @@ def parse_GO_terms(godag, dataframe, go_nums):
                                              'gene_name': slice2['gene_name'][idx],
                                              'uniprot': slice2['uniprot'][idx],
                                              'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+                # print("prepare df --- %s seconds ---" % (time.time() - start_time))
+                start_time = time.time()
+                return_df.append(temp_dataframe, ignore_index = True)
+                # print("append df --- %s seconds ---" % (time.time() - start_time))
+                print()
         print(string_iter, "/", string_iter, ":", go, "Complete")
+        # break
     return_df.to_csv("test.csv")
     return (return_df)
 
