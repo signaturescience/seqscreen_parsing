@@ -121,9 +121,6 @@ def bpoc_parse(dataframe, filename, output_dir):
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag, dataframe, go_nums):
-    return_df_dict = collections.defaultdict(list)
-    # return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
-    #                                   'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
     """
     This structure is horribly inefficient.  Needs to be refactored to do the following:
     generate expanded dataframe of ALL queries and ALL GO terms
@@ -131,6 +128,7 @@ def parse_GO_terms(godag, dataframe, go_nums):
     check query/GO combo for any GO term children, place in associated_GO_terms
     """
 
+    return_df_dict = collections.defaultdict(list)
     rows_raw = len(dataframe.index)
     dataframe2 = dataframe
     (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
