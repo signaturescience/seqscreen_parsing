@@ -130,8 +130,6 @@ def parse_GO_terms(godag, dataframe, go_nums):
     Filter to only include those rows that contain GO term
     check query/GO combo for any GO term children, place in associated_GO_terms
     """
-    import time
-    start_time = time.time()
 
     rows_raw = len(dataframe.index)
     dataframe2 = dataframe
