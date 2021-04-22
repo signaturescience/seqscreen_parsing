@@ -10,6 +10,8 @@ import subprocess
 import pandas as pd
 import numpy as np
 import utils
+import collections
+
 
 
 #why is this here?
@@ -119,8 +121,9 @@ def bpoc_parse(dataframe, filename, output_dir):
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag, dataframe, go_nums):
-    return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
-                                      'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
+    return_df_dict = collections.defaultdict(list)
+    # return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
+    #                                   'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
     """
     This structure is horribly inefficient.  Needs to be refactored to do the following:
     generate expanded dataframe of ALL queries and ALL GO terms
@@ -167,17 +170,25 @@ def parse_GO_terms(godag, dataframe, go_nums):
                 query_list=np.intersect1d(fl,go_family)
 
                 idx = slice2.index[0]
-                start_time = time.time()
-                return_df.loc[total_iter] = {'GO_term': go, 'query': query,
-                                             'organism': slice2['organism'][idx],
-                                             'associated_GO_terms': ";".join(query_list),
-                                             'multi_taxids_confidence': slice2['multi_taxids_confidence'],
-                                             'taxid': slice2['taxid'][idx],
-                                             'gene_name': slice2['gene_name'][idx],
-                                             'uniprot': slice2['uniprot'][idx],
-                                             'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+                # define new dict
+                temp_dict = {'GO_term': go, 'query': query,
+                            'organism': slice2['organism'][idx],
+                            'associated_GO_terms': ";".join(query_list),
+                            'multi_taxids_confidence': slice2['multi_taxids_confidence'],
+                            'taxid': slice2['taxid'][idx],
+                            'gene_name': slice2['gene_name'][idx],
+                            'uniprot': slice2['uniprot'][idx],
+                            'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+                
+                # append key values to list of values within each dict key
+                for k, v in temp_dict.items():
+                    return_df_dict[k].append(v)
 
         print(string_iter, "/", string_iter, ":", go, "Complete")
+        break
+
+    # convert dictionary to data frame only once, at the end
+    return_df = pd.DataFrame(return_df_dict)
     return_df.to_csv("test.csv")
     return (return_df)
 
