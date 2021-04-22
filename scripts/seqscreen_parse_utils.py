@@ -139,6 +139,7 @@ def parse_GO_terms(godag, dataframe, go_nums):
     expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
     total_iter = 0
     
+    # leverage memory to create a O(1) lookup of queried indices
     hashed_query_dict = utils.hash_df(dataframe2, 'query')
     
     for go in go_nums:
@@ -160,22 +161,10 @@ def parse_GO_terms(godag, dataframe, go_nums):
                 if string_iter % 1000 == 0:
                     print(string_iter, "/", len(queries))
                 
-                start_time = time.time()
-                # leverage memory to check for already queried entries
-                # if query not in query_dict:
-                #     query_dict[query] = dataframe2.loc[dataframe2['query'] == query]
-                #     query_dict[query] = dataframe2.iloc[dataframe2.index[dataframe2['query'] == query].tolist()]
-                # slice2 = query_dict[query]
                 slice2 = dataframe2.iloc[hashed_query_dict[query]]
-                if string_iter % 1000 == 0:
-                    print("query --- %s seconds ---" % (time.time() - start_time))
-                # print("query --- %s seconds ---" % (time.time() - start_time))
-                start_time = time.time()
                 
                 fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
                 query_list=np.intersect1d(fl,go_family)
-
-                # print("intercept --- %s seconds ---" % (time.time() - start_time))
 
                 idx = slice2.index[0]
                 start_time = time.time()
@@ -187,13 +176,11 @@ def parse_GO_terms(godag, dataframe, go_nums):
                                              'gene_name': slice2['gene_name'][idx],
                                              'uniprot': slice2['uniprot'][idx],
                                              'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
-                # print("prepare df --- %s seconds ---" % (time.time() - start_time))
+
                 start_time = time.time()
                 return_df.append(temp_dataframe, ignore_index = True)
-                # print("append df --- %s seconds ---" % (time.time() - start_time))
-                print()
+
         print(string_iter, "/", string_iter, ":", go, "Complete")
-        # break
     return_df.to_csv("test.csv")
     return (return_df)
 
