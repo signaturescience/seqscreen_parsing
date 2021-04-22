@@ -68,7 +68,7 @@ def main():
     # remove rows where there are no bpocs, create a revised file
     dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
     #fix filename to variable
-    godag = GODag("go-basic.obo", optional_attrs={'relationship'})
+    godag = GODag("go-basic.obo", optional_attrs={'relationship'}, prt=False )
     #parsed_dataframe = seqscreen.parse_GO_terms(godag,dataframe,go_nums)
     # FOR TROUBLESHOOTING
 #parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
