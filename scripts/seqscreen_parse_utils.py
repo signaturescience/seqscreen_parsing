@@ -185,7 +185,6 @@ def parse_GO_terms(godag, dataframe, go_nums):
                     return_df_dict[k].append(v)
 
         print(string_iter, "/", string_iter, ":", go, "Complete")
-        break
 
     # convert dictionary to data frame only once, at the end
     return_df = pd.DataFrame(return_df_dict)
