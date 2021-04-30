@@ -11,6 +11,9 @@ import pandas as pd
 import numpy as np
 import utils
 import collections
+import concurrent.futures
+import functools
+from parallel import process_go_num
 
 
 
@@ -127,7 +130,6 @@ def parse_GO_terms(godag, dataframe, go_nums):
     Filter to only include those rows that contain GO term
     check query/GO combo for any GO term children, place in associated_GO_terms
     """
-
     return_df_dict = collections.defaultdict(list)
     rows_raw = len(dataframe.index)
     dataframe2 = dataframe
@@ -136,51 +138,35 @@ def parse_GO_terms(godag, dataframe, go_nums):
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
     expanded_dataframe = dataframe.explode('go_id_confidence')
     expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
-    total_iter = 0
-    
-    # leverage memory to create a O(1) lookup of queried indices
-    hashed_query_dict = utils.hash_df(dataframe2, 'query')
-    
-    for go in go_nums:
-        print(go)
-        string_iter = 0
-        slice_go = expanded_dataframe.loc[expanded_dataframe['go'] == go]
-        go_family = [go]
-        if go in godag:
-            # list concatenation 
-            go_family = go_family + list(godag[go].get_all_children())
-        
-        if len(slice_go.index) > 0:
-            print("0", "/", len(slice_go.index))
-            queries = list(set(slice_go['query']))
-            string_iter = 0
-            for query in queries:
-                total_iter += 1
-                string_iter += 1
-                if string_iter % 1000 == 0:
-                    print(string_iter, "/", len(queries))
-                
-                slice2 = dataframe2.iloc[hashed_query_dict[query]]
-                
-                fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
-                query_list=np.intersect1d(fl,go_family)
 
-                idx = slice2.index[0]
-                # define new dict
-                temp_dict = {'GO_term': go, 'query': query,
-                            'organism': slice2['organism'][idx],
-                            'associated_GO_terms': ";".join(query_list),
-                            'multi_taxids_confidence': slice2['multi_taxids_confidence'],
-                            'taxid': slice2['taxid'][idx],
-                            'gene_name': slice2['gene_name'][idx],
-                            'uniprot': slice2['uniprot'][idx],
-                            'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
-                
-                # append key values to list of values within each dict key
-                for k, v in temp_dict.items():
-                    return_df_dict[k].append(v)
 
-        print(string_iter, "/", string_iter, ":", go, "Complete")
+    # leverage memory to create a O(1) lookup of indices
+    hashed_query_dict = utils.hash_df(dataframe2['query'])
+    hashed_expanded_dict = utils.hash_df(expanded_dataframe['go'])
+
+    # convert dataframes to dictionaries
+    main_dict = dataframe2.to_dict()
+    expanded_dict = expanded_dataframe.to_dict()
+
+    # preprocess go_slices (if multiprocessing is fixed, this can be broken up too)
+    go_slices = [utils.slice_dict(expanded_dict, hashed_expanded_dict[go]) for go in go_nums]
+    
+    # Single Threaded
+    for go_slice, go_num in zip(go_slices, go_nums):
+        return_dict = process_go_num(main_dict, expanded_dataframe, godag, hashed_query_dict, go_slice, go_num)
+        for k, v in return_dict.items():
+            return_df_dict[k].extend(v)
+
+    # # Multi-threaded
+    # with concurrent.futures.ProcessPoolExecutor() as executor:
+    #     futures = executor.map(functools.partial(process_go_num, main_dict, expanded_dataframe, godag, hashed_query_dict), go_slices, go_nums)
+    #    # futures, _ = concurrent.futures.wait(futures)
+
+    # # extend the list of items to the large dictionary
+    # for future in futures:
+    #     dictionary = future.result()
+    #     for k, v in dictionary.items():
+    #         return_df_dict[k].extend(v)
 
     # convert dictionary to data frame only once, at the end
     return_df = pd.DataFrame(return_df_dict)
