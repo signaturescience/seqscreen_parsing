@@ -32,7 +32,7 @@ def main():
     parser.add_argument("input_file", type=str, help="input a .tsv file")
     #    parser.add_argument("go_numbers", type=list, nargs="?", help="input go numbers separated by spaces")
     parser.add_argument("-g", "--go_file", required=False, type=str, help="File containing GO terms to be parsed")
-    parser.add_argument("-G", "--go_terms", required=False, type=str, action='append', help="Add individual GO terms can be repeated multiple times (e.g. -G GO:000112 -G GO:000013" )
+    parser.add_argument("-G", "--go_terms", required=False, type=str, action='append', help="Add individual GO terms can be repeated multiple times (e.g. -G GO:000112 -G GO:000013)" )
     parser.add_argument("--prefix", "-p", type=str, help="prefix for output files, default is seqscreen_GO", default="seqscreen_GO")
     parser.add_argument("--out","-o", type=str, required=False, help="output directory, default = output", default="output")
     parser.add_argument("--krona", "-k", action='store_true', help="generate krona plots per GO term")
@@ -68,7 +68,7 @@ def main():
     # remove rows where there are no bpocs, create a revised file
     dataframe = pd.read_csv(pathlib.Path(args.input_file), sep='\t', dtype=str)
     #fix filename to variable
-    godag = GODag("go-basic.obo", optional_attrs={'relationship'})
+    godag = GODag("go-basic.obo", optional_attrs={'relationship'}, prt=False )
     #parsed_dataframe = seqscreen.parse_GO_terms(godag,dataframe,go_nums)
     # FOR TROUBLESHOOTING
 #parsed_dataframe = parse_GO_terms(godag, dataframe, go_nums)
