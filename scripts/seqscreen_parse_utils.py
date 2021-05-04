@@ -11,7 +11,8 @@ import pandas as pd
 import numpy as np
 import utils
 import collections
-import concurrent.futures
+# import concurrent.futures
+from multiprocessing import Pool
 import functools
 from parallel import process_go_num
 
@@ -157,12 +158,12 @@ def parse_GO_terms(godag, dataframe, go_nums):
         for k, v in return_dict.items():
             return_df_dict[k].extend(v)
 
-    # # Multi-threaded
+    # Multi-threaded
     # with concurrent.futures.ProcessPoolExecutor() as executor:
     #     futures = executor.map(functools.partial(process_go_num, main_dict, expanded_dataframe, godag, hashed_query_dict), go_slices, go_nums)
-    #    # futures, _ = concurrent.futures.wait(futures)
-
-    # # extend the list of items to the large dictionary
+        # futures, _ = concurrent.futures.wait(futures)
+    
+    # extend the list of items to the large dictionary
     # for future in futures:
     #     dictionary = future.result()
     #     for k, v in dictionary.items():
@@ -205,6 +206,7 @@ def count_taxids(dframe, destname):
     summary.columns = [tid, "count", "percentage"]
     summary.to_csv(destname, sep="\t", index=False)
 
+
 def assume_human(dframe, destname):
     """
 
@@ -224,6 +226,7 @@ def assume_human(dframe, destname):
     dframe.loc[dframe["multi_taxids_confidence"].str.contains("9606:"),
                "taxid"] = 9606
     dframe.to_csv(destname, sep="\t", index=False)
+
 
 def sort_conf(cell, conf):
     """
@@ -256,6 +259,7 @@ def sort_conf(cell, conf):
         strdict = repr(taxids).replace("{", "").replace("}", "")
         return [max(final_tids, key=final_tids.get), strdict]
     return [None, None]
+
 
 def sort_tied(cell, thresh):
     """
@@ -297,6 +301,7 @@ def sort_tied(cell, thresh):
         return [max(taxids, key=taxids.get), strdict]
     return [None, None]
 
+
 def parse_funcs(dframe, destname, func, attr):
     """
 
@@ -320,6 +325,7 @@ def parse_funcs(dframe, destname, func, attr):
     if len(df2.index) < 1:
         print("no samples in input file fit given criteria, empty file returned")
     df2.to_csv(destname, sep="\t", index=False)
+
 
 def make_krona(infile):
     """

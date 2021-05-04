@@ -10,7 +10,6 @@ import collections
 def process_go_num(main_dict, expanded_dataframe, godag, hashed_query_dict, slice_go, go): 
     
     return_df_dict = collections.defaultdict(list)
-    # slice_go = expanded_dataframe.loc[expanded_dataframe['go'] == go]
     go_family = [go]
     if go in godag:
         # list concatenation
@@ -54,8 +53,3 @@ def process_go_num(main_dict, expanded_dataframe, godag, hashed_query_dict, slic
     print(f'{go}: {iteration} / {len(queries)} COMPLETE')
 
     return return_df_dict
-
-# if __name__ == '__main__':
-#     #run the following:
-#     with concurrent.futures.ProcessPoolExecutor() as executor:
-#             result = executor.map(functools.partial(process_go_num, hashed_query_dict, expanded_dataframe), go_nums)
