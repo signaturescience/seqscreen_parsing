@@ -9,6 +9,9 @@ import os
 import subprocess
 import pandas as pd
 import numpy as np
+import utils
+import collections
+
 
 
 #why is this here?
@@ -118,14 +121,14 @@ def bpoc_parse(dataframe, filename, output_dir):
 
 ## Takes in godag, dataframe and list of GO terms, returns dataframe of only query terms associated with GO terms in list.
 def parse_GO_terms(godag, dataframe, go_nums):
-    return_df = pd.DataFrame(columns=['GO_term', 'query', 'organism', 'associated_GO_terms', 'multi_taxids_confidence',
-                                      'taxid', 'gene_name', 'uniprot', 'uniprot evalue'], dtype='str')
     """
     This structure is horribly inefficient.  Needs to be refactored to do the following:
     generate expanded dataframe of ALL queries and ALL GO terms
     Filter to only include those rows that contain GO term
     check query/GO combo for any GO term children, place in associated_GO_terms
     """
+
+    return_df_dict = collections.defaultdict(list)
     rows_raw = len(dataframe.index)
     dataframe2 = dataframe
     (dataframe, num_rows) = remove_blanks_from_dataframe(dataframe, 'go')
@@ -133,16 +136,20 @@ def parse_GO_terms(godag, dataframe, go_nums):
     dataframe['go_id_confidence'] = dataframe['go_id_confidence'].str.split(";")
     expanded_dataframe = dataframe.explode('go_id_confidence')
     expanded_dataframe['go'] = expanded_dataframe['go_id_confidence'].str.replace("\[.*", "", regex=True)
-    godag_keys = godag.keys()
     total_iter = 0
+    
+    # leverage memory to create a O(1) lookup of queried indices
+    hashed_query_dict = utils.hash_df(dataframe2, 'query')
+    
     for go in go_nums:
         print(go)
         string_iter = 0
         slice_go = expanded_dataframe.loc[expanded_dataframe['go'] == go]
         go_family = [go]
-        if go in godag_keys:
-            for value in list(godag[go].get_all_children()):
-                go_family.append(value)
+        if go in godag:
+            # list concatenation 
+            go_family = go_family + list(godag[go].get_all_children())
+        
         if len(slice_go.index) > 0:
             print("0", "/", len(slice_go.index))
             queries = list(set(slice_go['query']))
@@ -152,19 +159,31 @@ def parse_GO_terms(godag, dataframe, go_nums):
                 string_iter += 1
                 if string_iter % 1000 == 0:
                     print(string_iter, "/", len(queries))
-                slice2 = dataframe2.loc[dataframe2['query'] == query]
+                
+                slice2 = dataframe2.iloc[hashed_query_dict[query]]
+                
                 fl = expanded_dataframe['go']['query' == query and 'go' in go_family]
                 query_list=np.intersect1d(fl,go_family)
+
                 idx = slice2.index[0]
-                return_df.loc[total_iter] = {'GO_term': go, 'query': query,
-                                             'organism': slice2['organism'][idx],
-                                             'associated_GO_terms': ";".join(query_list),
-                                             'multi_taxids_confidence': slice2['multi_taxids_confidence'],
-                                             'taxid': slice2['taxid'][idx],
-                                             'gene_name': slice2['gene_name'][idx],
-                                             'uniprot': slice2['uniprot'][idx],
-                                             'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+                # define new dict
+                temp_dict = {'GO_term': go, 'query': query,
+                            'organism': slice2['organism'][idx],
+                            'associated_GO_terms': ";".join(query_list),
+                            'multi_taxids_confidence': slice2['multi_taxids_confidence'],
+                            'taxid': slice2['taxid'][idx],
+                            'gene_name': slice2['gene_name'][idx],
+                            'uniprot': slice2['uniprot'][idx],
+                            'uniprot evalue': slice2['uniprot evalue'][idx]}  # dicer
+                
+                # append key values to list of values within each dict key
+                for k, v in temp_dict.items():
+                    return_df_dict[k].append(v)
+
         print(string_iter, "/", string_iter, ":", go, "Complete")
+
+    # convert dictionary to data frame only once, at the end
+    return_df = pd.DataFrame(return_df_dict)
     return_df.to_csv("test.csv")
     return (return_df)
 
