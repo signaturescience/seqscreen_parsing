@@ -170,5 +170,6 @@ def numpy_parse_GO_terms(godag, dataframe, go_nums):
 
 if __name__ == "__main__":
     # execute only if run as a script
+    # sys.setrecursionlimit(10000000)
     sys.exit(main())
 
